@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Inscription - Forum Sekkay</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kdam+Thmor+Pro&family=Varela+Round&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="public/CSS/loginpage.css">
+</head>
+<body>
+<div class="container">
+    <div class="item-container">
+        <h2 class="log-in">INSCRIPTION</h2>
+    </div>
+    
+    {{ if ne .Message "" }}
+    <div class="item-container">
+        <p style="color: #ff6b00">{{ .Message }}</p>
+    </div>
+    {{ end }}
+    
+    <div class="item-container">
+        <p>Inscrivez-vous avec votre email</p>
+    </div>
+    
+    <form action="/api/register" method="post">
+        <div class="form-input">
+            <label class="label">Nom d'utilisateur</label>
+            <input type="text" name="username" placeholder="Choisissez un nom d'utilisateur unique">
+        </div>
+        
+        <div class="form-input">
+            <label class="label">Email</label>
+            <input type="text" name="email" placeholder="Votre adresse email">
+        </div>
+        
+        <div class="form-input">
+            <label class="label">Mot de passe</label>
+            <input type="password" name="password" placeholder="Créez un mot de passe sécurisé">
+        </div>
+        
+        <div class="button">
+            <button type="submit">S'inscrire</button>
+        </div>
+    </form>
+</div>
+</body>
+</html>
