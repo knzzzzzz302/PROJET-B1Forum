@@ -60,7 +60,7 @@ func main() {
 
 	fs := http.FileServer(http.Dir("public"))
 	router := http.NewServeMux()
-	fmt.Println("Starting server on port 8000")
+	fmt.Println("Starting server on port http://localhost:8080/")
 
 	router.HandleFunc("/", webAPI.Index)
 	router.HandleFunc("/register", webAPI.Register)
@@ -76,5 +76,5 @@ func main() {
 	router.HandleFunc("/api/vote", webAPI.VoteApi)
 
 	router.Handle("/public/", http.StripPrefix("/public/", fs))
-	http.ListenAndServe(":8000", router)
+	http.ListenAndServe(":8080", router)
 }

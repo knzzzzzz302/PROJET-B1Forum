@@ -29,23 +29,24 @@
 }
 
 body {
-    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: var(--background-dark);
     color: var(--text-primary);
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
 }
 
+/* Header Styles */
 .header {
-    position: sticky;
-    top: 0;
-    z-index: 100;
     background-color: var(--background-light-dark);
     padding: 15px 5%;
     display: flex;
     justify-content: space-between;
     align-items: center;
     box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
 .logo {
@@ -54,14 +55,21 @@ body {
     color: var(--accent-color);
     text-transform: uppercase;
     letter-spacing: 1px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
 }
 
-.nav {
+.logo i {
+    margin-right: 10px;
+}
+
+.header-right {
     display: flex;
     gap: 20px;
 }
 
-.nav a {
+.header-right a {
     color: var(--text-primary);
     text-decoration: none;
     position: relative;
@@ -69,154 +77,169 @@ body {
     font-weight: 500;
 }
 
-.nav a::after {
-    content: '';
-    position: absolute;
-    width: 0;
-    height: 2px;
-    bottom: -5px;
-    left: 0;
-    background-color: var(--accent-color);
-    transition: width 0.3s ease;
-}
-
-.nav a:hover {
+.header-right a:hover {
     color: var(--accent-color);
 }
 
-.nav a:hover::after {
-    width: 100%;
+.header-right a.active {
+    color: var(--accent-color);
 }
 
-.container {
+/* Main Content Styles */
+.main-content {
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
 }
 
-.categories {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
-}
-
-.category {
+.welcome-section {
     background-color: var(--background-light-dark);
     border-radius: 10px;
-    overflow: hidden;
-    transition: transform 0.3s ease;
+    margin-bottom: 20px;
+    padding: 20px;
 }
 
-.category:hover {
-    transform: scale(1.02);
+.subforum-title {
+    text-align: center;
+    margin-bottom: 15px;
 }
 
-.category-header {
-    background-color: var(--accent-color);
-    color: var(--background-dark);
-    padding: 15px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+.subforum-title h1 {
+    color: var(--text-primary);
+    font-size: 24px;
 }
 
-.category-posts {
-    padding: 15px;
-}
-
-.post {
+.subforum-row {
+    display: flex;
+    align-items: center;
     background-color: var(--background-dark);
     margin-bottom: 10px;
     padding: 15px;
     border-radius: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     transition: background-color 0.3s ease;
 }
 
-.post:hover {
+.subforum-row:hover {
     background-color: rgba(255,107,0,0.1);
 }
 
-.post-content {
+.subforum-column {
+    padding: 0 10px;
+}
+
+.subforum-icon {
+    font-size: 2rem;
+    color: var(--accent-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.subforum-description {
     flex-grow: 1;
 }
 
-.post-title {
-    font-size: 16px;
-    color: var(--text-primary);
+.subforum-description h4 {
     margin-bottom: 5px;
 }
 
-.post-title a {
+.subforum-description h4 a,
+.subforum-description p a {
     color: var(--text-primary);
     text-decoration: none;
     transition: color 0.3s ease;
 }
 
-.post-title a:hover {
+.subforum-description h4 a:hover,
+.subforum-description p a:hover {
     color: var(--accent-color);
 }
 
-.post-meta {
+.subforum-info {
+    text-align: right;
     color: var(--text-secondary);
-    font-size: 14px;
+    font-size: 0.9rem;
 }
 
-.post-stats {
-    display: flex;
-    align-items: center;
+.subforum-info a {
     color: var(--text-secondary);
+    text-decoration: none;
+    transition: color 0.3s ease;
 }
 
-.post-stats span {
-    margin-left: 10px;
-    display: flex;
-    align-items: center;
+.subforum-info a:hover {
+    color: var(--accent-color);
 }
 
-.post-stats span i {
-    margin-right: 5px;
+.subforum-devider {
+    border: 0;
+    height: 1px;
+    background-color: rgba(255,255,255,0.1);
+    margin: 10px 0;
 }
 
-.footer {
+/* Footer Styles */
+footer {
     background-color: var(--background-light-dark);
     color: var(--text-secondary);
-    text-align: center;
     padding: 20px;
     margin-top: 20px;
 }
 
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.footer-row {
+    display: flex;
+}
+
+.footer-column {
+    flex-grow: 1;
+}
+
+.footer-column h1 {
+    margin-bottom: 10px;
+    color: var(--text-primary);
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
     .header {
         flex-direction: column;
         align-items: center;
     }
 
-    .nav {
+    .header-right {
         margin-top: 15px;
         flex-direction: column;
         align-items: center;
         gap: 10px;
     }
 
-    .categories {
-        grid-template-columns: 1fr;
+    .subforum-row {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .subforum-info {
+        margin-top: 10px;
+        text-align: center;
     }
 }
 
-/* Animations et effets supplémentaires */
+/* Animations */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
-.category {
+.subforum {
     animation: fadeIn 0.5s ease-out;
 }
 
-/* Mode sombre personnalisé */
+/* Dark Mode Support */
 @media (prefers-color-scheme: dark) {
     body {
         background-color: var(--background-dark);

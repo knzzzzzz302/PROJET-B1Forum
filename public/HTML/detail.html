@@ -1,6 +1,6 @@
 {{ define "LoggedHeader" }}
 <div class="header">
-    <a href="/" class="logo"><i class=" fa fa-solid fa-user"></i>SEKKAY</a>
+    <a href="/" class="logo"><i class="fa fa-solid fa-user"></i>SEKKAY</a>
     <div class="header-right">
         <a class="active" href="/">Home</a>
         <a href="/filter?by=liked">Liked Posts</a>
@@ -13,7 +13,7 @@
 
 {{ define "DefaultHeader" }}
 <div class="header">
-    <a href="/" class="logo"><i class=" fa fa-solid fa-user"></i>SEKKAY</a>
+    <a href="/" class="logo"><i class="fa fa-solid fa-user"></i>SEKKAY</a>
     <div class="header-right">
         <a class="active" href="/">Home</a>
         <a href="/login">Login</a>
@@ -52,7 +52,6 @@
     <!--Topic Section-->
     <div class="topic-container">
         <!--Original thread-->
-
     </div>
     <div class="body">
         <div class="authors">
@@ -66,23 +65,39 @@
             </div>
             <br>
             <hr>
-            <img class="thumbsup" src="https://img.icons8.com/material-outlined/24/undefined/thumb-up.png"
-                 style="margin: 0" onclick="upvote({{ .Post.Id }})"/>
+            
+            <!-- Upvote Form -->
+            <form action="/api/vote" method="POST">
+                <input type="hidden" name="postId" value="{{ .Post.Id }}">
+                <input type="hidden" name="vote" value="1"> <!-- 1 pour upvote -->
+                <button type="submit">
+                    <img class="thumbsup" src="https://img.icons8.com/material-outlined/24/undefined/thumb-up.png" style="margin: 0"/>
+                </button>
+            </form>
             <a style="margin-right: 10px">{{ .Post.UpVotes }}</a>
-            <img class="thumbsdown" src="https://img.icons8.com/material-outlined/24/undefined/thumb-up.png"
-                 style="margin: 0" onclick="downvote({{ .Post.Id }})"/>
+
+            <!-- Downvote Form -->
+            <form action="/api/vote" method="POST">
+                <input type="hidden" name="postId" value="{{ .Post.Id }}">
+                <input type="hidden" name="vote" value="-1"> <!-- -1 pour downvote -->
+                <button type="submit">
+                    <img class="thumbsdown" src="https://img.icons8.com/material-outlined/24/undefined/thumb-up.png" style="margin: 0"/>
+                </button>
+            </form>
             <a>{{ .Post.DownVotes }}</a>
+
             {{ if .User.IsLoggedIn }}
             <div class="comment">
                 <button onclick="showComment()">Comment</button>
                 <div class="comment-box" id="comment-box">
                 </div>
-                {{ end }}
-                <br>
-                {{ .Post.CreatedAt }}
             </div>
+            {{ end }}
+            <br>
+            {{ .Post.CreatedAt }}
         </div>
     </div>
+    
     <!--Comment Area-->
     <div class="comment-area hide" id="comment-area">
         <form action="/api/comments" method="post">
@@ -91,6 +106,7 @@
             <input type="submit" value="submit">
         </form>
     </div>
+    
     <!--Comments Section-->
     {{ range .Post.Comments }}
     <div class="comments-container">
