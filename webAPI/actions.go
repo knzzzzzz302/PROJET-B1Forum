@@ -116,84 +116,81 @@ func CommentsApi(w http.ResponseWriter, r *http.Request) {
 
 // VoteApi permet de voter sur un post
 func VoteApi(w http.ResponseWriter, r *http.Request) {
-    if r.Method == "POST" {
-        if !isLoggedIn(r) {
-            w.WriteHeader(http.StatusUnauthorized)
-            return
-        }
-        if err := r.ParseForm(); err != nil {
-            fmt.Fprintf(w, "ParseForm() err: %v", err)
-            return
-        }
-        cookie, _ := r.Cookie("SESSION")
-        username := databaseAPI.GetUser(database, cookie.Value)
-        postId := r.FormValue("postId")
-        postIdInt, _ := strconv.Atoi(postId)
-        vote := r.FormValue("vote")
-        voteInt, _ := strconv.Atoi(vote)
-        now := time.Now().Format("2006-01-02 15:04:05")
-        if voteInt == 1 {
-            if databaseAPI.HasUpvoted(database, username, postIdInt) {
-                databaseAPI.RemoveVote(database, postIdInt, username)
-                databaseAPI.DecreaseUpvotes(database, postIdInt)
-                fmt.Println("Removed upvote from " + username + " on post " + postId + " at " + now)
-                w.WriteHeader(http.StatusOK)
-                w.Write([]byte("Vote removed"))
-                http.Redirect(w, r, "/post?id="+strconv.Itoa(postIdInt), http.StatusFound)
-                return
-            }
-            if databaseAPI.HasDownvoted(database, username, postIdInt) {
-                databaseAPI.DecreaseDownvotes(database, postIdInt)
-                databaseAPI.IncreaseUpvotes(database, postIdInt)
-                databaseAPI.UpdateVote(database, postIdInt, username, 1)
-                fmt.Println(username + " upvoted" + " on post " + postId + " at " + now)
-                w.WriteHeader(http.StatusOK)
-                w.Write([]byte("Upvote added"))
-                http.Redirect(w, r, "/post?id="+strconv.Itoa(postIdInt), http.StatusFound)
-                return
-            }
-            databaseAPI.IncreaseUpvotes(database, postIdInt)
-            databaseAPI.AddVote(database, postIdInt, username, 1)
-            fmt.Println(username + " upvoted" + " on post " + postId + " at " + now)
-            w.WriteHeader(http.StatusOK)
-            w.Write([]byte("Upvote added"))
-            http.Redirect(w, r, "/post?id="+strconv.Itoa(postIdInt), http.StatusFound)
-            return
-        }
-        if voteInt == -1 {
-            if databaseAPI.HasDownvoted(database, username, postIdInt) {
-                databaseAPI.RemoveVote(database, postIdInt, username)
-                databaseAPI.DecreaseDownvotes(database, postIdInt)
-                fmt.Println("Removed downvote from " + username + " on post " + postId + " at " + now)
-                w.WriteHeader(http.StatusOK)
-                w.Write([]byte("Vote removed"))
-                http.Redirect(w, r, "/post?id="+strconv.Itoa(postIdInt), http.StatusFound)
-                return
-            }
-            if databaseAPI.HasUpvoted(database, username, postIdInt) {
-                databaseAPI.DecreaseUpvotes(database, postIdInt)
-                databaseAPI.IncreaseDownvotes(database, postIdInt)
-                databaseAPI.UpdateVote(database, postIdInt, username, -1)
-                fmt.Println(username + " downvoted" + " on post " + postId + " at " + now)
-                w.WriteHeader(http.StatusOK)
-                w.Write([]byte("Downvote added"))
-                http.Redirect(w, r, "/post?id="+strconv.Itoa(postIdInt), http.StatusFound)
-                return
-            }
-            databaseAPI.IncreaseDownvotes(database, postIdInt)
-            databaseAPI.AddVote(database, postIdInt, username, -1)
-            fmt.Println(username + " downvoted" + " on post " + postId + " at " + now)
-            w.WriteHeader(http.StatusOK)
-            w.Write([]byte("Downvote added"))
-            http.Redirect(w, r, "/post?id="+strconv.Itoa(postIdInt), http.StatusFound)
-            return
-        }
-        w.WriteHeader(http.StatusBadRequest)
-        w.Write([]byte("Invalid vote"))
+    if r.Method != "POST" {
+        http.Error(w, "Méthode non autorisée", http.StatusMethodNotAllowed)
         return
     }
-    w.WriteHeader(http.StatusMethodNotAllowed)
-    return
+
+    if !isLoggedIn(r) {
+        http.Error(w, "Authentification requise", http.StatusUnauthorized)
+        return
+    }
+
+    if err := r.ParseForm(); err != nil {
+        http.Error(w, "Erreur de traitement du formulaire", http.StatusBadRequest)
+        return
+    }
+
+    cookie, _ := r.Cookie("SESSION")
+    username := databaseAPI.GetUser(database, cookie.Value)
+    postId := r.FormValue("postId")
+    postIdInt, err := strconv.Atoi(postId)
+    if err != nil {
+        http.Error(w, "Identifiant de post invalide", http.StatusBadRequest)
+        return
+    }
+
+    vote := r.FormValue("vote")
+    voteInt, err := strconv.Atoi(vote)
+    if err != nil || (voteInt != 1 && voteInt != -1) {
+        http.Error(w, "Valeur de vote invalide", http.StatusBadRequest)
+        return
+    }
+
+    now := time.Now().Format("2006-01-02 15:04:05")
+    logPrefix := fmt.Sprintf("Vote - Utilisateur %s, Post %s, %s: ", username, postId, now)
+
+    if voteInt == 1 {
+        if databaseAPI.HasUpvoted(database, username, postIdInt) {
+            // Annulation d'un vote positif
+            databaseAPI.RemoveVote(database, postIdInt, username)
+            databaseAPI.DecreaseUpvotes(database, postIdInt)
+            fmt.Println(logPrefix + "Suppression d'un vote positif")
+        } else if databaseAPI.HasDownvoted(database, username, postIdInt) {
+            // Changement de vote négatif à positif
+            databaseAPI.RemoveVote(database, postIdInt, username)
+            databaseAPI.DecreaseDownvotes(database, postIdInt)
+            databaseAPI.AddVote(database, postIdInt, username, 1)
+            databaseAPI.IncreaseUpvotes(database, postIdInt)
+            fmt.Println(logPrefix + "Changement de vote négatif à positif")
+        } else {
+            // Nouveau vote positif
+            databaseAPI.AddVote(database, postIdInt, username, 1)
+            databaseAPI.IncreaseUpvotes(database, postIdInt)
+            fmt.Println(logPrefix + "Nouveau vote positif")
+        }
+    } else { // voteInt == -1
+        if databaseAPI.HasDownvoted(database, username, postIdInt) {
+            // Annulation d'un vote négatif
+            databaseAPI.RemoveVote(database, postIdInt, username)
+            databaseAPI.DecreaseDownvotes(database, postIdInt)
+            fmt.Println(logPrefix + "Suppression d'un vote négatif")
+        } else if databaseAPI.HasUpvoted(database, username, postIdInt) {
+            // Changement de vote positif à négatif
+            databaseAPI.RemoveVote(database, postIdInt, username)
+            databaseAPI.DecreaseUpvotes(database, postIdInt)
+            databaseAPI.AddVote(database, postIdInt, username, -1)
+            databaseAPI.IncreaseDownvotes(database, postIdInt)
+            fmt.Println(logPrefix + "Changement de vote positif à négatif")
+        } else {
+            // Nouveau vote négatif
+            databaseAPI.AddVote(database, postIdInt, username, -1)
+            databaseAPI.IncreaseDownvotes(database, postIdInt)
+            fmt.Println(logPrefix + "Nouveau vote négatif")
+        }
+    }
+
+    http.Redirect(w, r, "/post?id="+strconv.Itoa(postIdInt), http.StatusFound)
 }
 
 // EditPostHandler gère l'édition d'un post
@@ -419,4 +416,7 @@ func DeleteCommentHandler(w http.ResponseWriter, r *http.Request) {
 
     // Rediriger vers le post
     http.Redirect(w, r, "/post?id="+postIdStr, http.StatusFound)
+    
 }
+
+

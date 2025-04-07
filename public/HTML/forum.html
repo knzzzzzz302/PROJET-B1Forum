@@ -1,12 +1,17 @@
 {{ define "LoggedHeader" }}
 <div class="header">
-    <a href="/" class="logo"><i class="fa fa-solid fa-fire"></i>FORUM SEKKAY</a>
+    <a href="/" class="logo">
+        <img src="/public/images/image.png" alt="Forum Logo" class="logo-image">
+    </a>"></i>FORUM SEKKAY</a>
     <div class="header-right">
         <a class="active" href="/">Accueil</a>
         <a href="/filter?by=liked">Publications aimées</a>
         <a href="/filter?by=myposts">Mes publications</a>
         <a href="/newpost">Nouvelle publication</a>
+        <a href="/profile">Profil</a> <!-- Ajout du lien vers le profil ici -->
         <a href="/api/logout">Déconnexion</a>
+        <link rel="icon" type="image/png" href="/public/images/image.png">
+<link rel="shortcut icon" type="image/png" href="/public/images/image.png">
     </div>
 </div>
 {{ end }}
@@ -18,6 +23,7 @@
         <a class="active" href="/">Accueil</a>
         <a href="/login">Connexion</a>
         <a href="/register">Inscription</a>
+        <a href="/profile">Profil</a>
     </div>
 </div>
 {{ end }}
@@ -39,72 +45,71 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 </head>
 <body>
-<header>
-    {{ if .User.IsLoggedIn }}
-    {{ template "LoggedHeader" . }}
-    {{ else }}
-    {{ template "DefaultHeader" . }}
-    {{ end }}
-</header>
+    <header>
+        {{ if .User.IsLoggedIn }}
+            {{ template "LoggedHeader" . }}
+        {{ else }}
+            {{ template "DefaultHeader" . }}
+        {{ end }}
+    </header>
 
-<div class="main-content">
-    <div class="container">
-        <div class="welcome-section">
+    <div class="main-content">
+        <div class="container">
+            <div class="welcome-section">
+                <div class="subforum-title">
+                    <h1>BIENVENUE SUR FORUM SEKKAY - LIBERTÉ D'EXPRESSION</h1>
+                </div>
+                <div class="subforum-row">
+                    <div class="subforum-icon subforum-column center">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <div class="subforum-description subforum-column">
+                        <p>Un espace de dialogue ouvert et respectueux</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{ range $index, $category := $categories }}
+        <div class="subforum">
             <div class="subforum-title">
-                <h1>BIENVENUE SUR FORUM SEKKAY - LIBERTÉ D'EXPRESSION</h1>
+                <h1><a style="color: white; box-shadow: none" href="filter?by=category&category={{ $category }}">{{ $category }}</a></h1>
             </div>
-            <div class="subforum-row">
-                <div class="subforum-icon subforum-column center">
-                    <i class="fas fa-comments"></i>
+            {{ range $indexPost, $value := index $postsByCategories $index }}
+                {{ if lt $indexPost 5}}
+                <div class="subforum-row">
+                    <div class="subforum-icon subforum-column center">
+                        <i class="fa {{ index $icons $index }}"></i>
+                    </div>
+                    <div class="subforum-description subforum-column">
+                        <h4><a href="/post?id={{ .Id }}">{{ .Title }}</a></h4>
+                        <p>{{ .UpVotes }} J'aimes | {{ .DownVotes }} Je n'aimes pas</p>
+                    </div>
+                    <div class="subforum-info subforum-column">
+                        <b><a>Publication</a></b> par <a>{{ .Username }}</a>
+                        <br>le <small>{{ .CreatedAt }}</small>
+                    </div>
                 </div>
-                <div class="subforum-description subforum-column">
-                    <p>Un espace de dialogue ouvert et respectueux</p>
-                </div>
-            </div>
+                <hr class="subforum-devider">
+                {{ end }}
+            {{ end }}
         </div>
-    </div>
-
-    {{ range $index, $category := $categories }}
-    <div class="subforum">
-        <div class="subforum-title">
-            <h1><a style="color: white; box-shadow: none" href="filter?by=category&category={{ $category }}">{{
-                $category }}</a></h1>
-        </div>
-        {{ range $indexPost, $value := index $postsByCategories $index }}
-        {{ if lt $indexPost 5}}
-        <div href="post.html" class="subforum-row">
-            <div class="subforum-icon subforum-column center">
-                <i class="fa {{ index $icons $index }}"></i>
-            </div>
-            <div class="subforum-description subforum-column">
-                <h4><a href="/post?id={{ .Id }}">{{ .Title }}</a></h4>
-                <p>{{ .UpVotes }} J'aimes | {{ .DownVotes }} Je n'aimes pas</p>
-            </div>
-            <div class="subforum-info subforum-column">
-                <b><a>Publication</a></b> par <a>{{ .Username }}</a>
-                <br>le <small>{{ .CreatedAt }}</small>
-            </div>
-        </div>
-        <hr class="subforum-devider">
-        {{ end }}
         {{ end }}
     </div>
-    {{ end }}
-</div>
 
-<footer>
-    <div class="footer-container">
-        <div class="footer-row">
-            <div class="footer-column">
-                <h1>FORUM SEKKAY &copy;</h1>
-                <p>
-                    Merci d'utiliser notre forum. Nous espérons que vous passerez un excellent moment !
-                </p>
+    <footer>
+        <div class="footer-container">
+            <div class="footer-row">
+                <div class="footer-column">
+                    <h1>FORUM SEKKAY &copy;</h1>
+                    <p>
+                        Merci d'utiliser notre forum. Nous espérons que vous passerez un excellent moment !
+                    </p>
+                </div>
             </div>
         </div>
-    </div>
-</footer>
+    </footer>
 
-<script src="public/JS/main.js"></script>
+    <script src="public/JS/main.js"></script>
 </body>
 </html>

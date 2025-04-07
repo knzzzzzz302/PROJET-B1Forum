@@ -1,0 +1,245 @@
+:root {
+    --primary-orange: #FF6B00;
+    --dark-orange: #CC5500;
+    --black: #121212;
+    --dark-black: #0A0A0A;
+    --light-black: #1E1E1E;
+    --text-light: #FFFFFF;
+    --text-secondary: #B0B0B0;
+    --border-color: #333333;
+    --error-color: #FF4D4D;
+    --success-color: #4CAF50;
+}
+
+body {
+    background-color: var(--black);
+    color: var(--text-light);
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+}
+
+.profile-container {
+    max-width: 1000px;
+    margin: 30px auto;
+    background-color: var(--light-black);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.profile-header {
+    background: linear-gradient(to right, var(--primary-orange), var(--dark-orange));
+    padding: 20px;
+    text-align: center;
+}
+
+.profile-header h1 {
+    margin: 0;
+    color: var(--text-light);
+    font-size: 28px;
+}
+
+.profile-content {
+    display: flex;
+    padding: 30px;
+}
+
+@media (max-width: 768px) {
+    .profile-content {
+        flex-direction: column;
+    }
+}
+
+.profile-sidebar {
+    flex: 1;
+    max-width: 300px;
+    padding-right: 30px;
+}
+
+@media (max-width: 768px) {
+    .profile-sidebar {
+        max-width: 100%;
+        padding-right: 0;
+        margin-bottom: 30px;
+    }
+}
+
+.profile-avatar {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.profile-avatar img {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--primary-orange);
+    margin-bottom: 15px;
+}
+
+.avatar-upload-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.upload-btn {
+    background-color: var(--light-black);
+    color: var(--text-light);
+    border: 1px solid var(--primary-orange);
+    border-radius: 5px;
+    padding: 8px 15px;
+    cursor: pointer;
+    margin-bottom: 10px;
+    transition: all 0.3s;
+}
+
+.upload-btn:hover {
+    background-color: var(--primary-orange);
+    color: var(--black);
+}
+
+.submit-btn {
+    background-color: var(--primary-orange);
+    color: var(--text-light);
+    border: none;
+    border-radius: 5px;
+    padding: 8px 15px;
+    cursor: pointer;
+    display: none;
+    transition: all 0.3s;
+}
+
+.submit-btn:hover {
+    background-color: var(--dark-orange);
+}
+
+.profile-stats {
+    background-color: var(--dark-black);
+    border-radius: 8px;
+    padding: 15px;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.stat-item:last-child {
+    border-bottom: none;
+}
+
+.stat-label {
+    color: var(--text-secondary);
+}
+
+.stat-value {
+    color: var(--primary-orange);
+    font-weight: bold;
+}
+
+.profile-info {
+    flex: 2;
+}
+
+.info-section {
+    background-color: var(--dark-black);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+.info-section h2 {
+    color: var(--primary-orange);
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 20px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--text-secondary);
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    background-color: var(--light-black);
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    color: var(--text-light);
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--primary-orange);
+}
+
+.edit-btn {
+    background-color: var(--primary-orange);
+    color: var(--text-light);
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 10px;
+}
+
+.edit-btn:hover {
+    background-color: var(--dark-orange);
+}
+
+.alert {
+    padding: 10px 15px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+}
+
+.alert.success {
+    background-color: rgba(76, 175, 80, 0.2);
+    border: 1px solid var(--success-color);
+}
+
+.alert.error {
+    background-color: rgba(255, 77, 77, 0.2);
+    border: 1px solid var(--error-color);
+}
+
+.activity-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.activity-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.activity-item a {
+    color: var(--text-light);
+    text-decoration: none;
+}
+
+.activity-item a:hover {
+    color: var(--primary-orange);
+}
+
+.activity-date {
+    color: var(--text-secondary);
+    font-size: 0.85em;
+}

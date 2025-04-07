@@ -5,8 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Forum</title>
     <link rel="stylesheet" href="public/CSS/style.css">
-    <link rel="stylesheet" href="public/CSS/detailcss.css">
+    <link rel="stylesheet" href="public/CSS/dark-theme.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <div class="login-container">
+    <form class="login-form" action="/api/login" method="post">
+        <!-- Reste du formulaire de connexion -->
+    </form>
+</div>
 </head>
 <body>
     <header>
@@ -14,11 +19,12 @@
         <div class="header">
             <a href="/" class="logo"><i class="fa fa-solid fa-user"></i>SEKKAY</a>
             <div class="header-right">
-                <a class="active" href="/">Home</a>
+                <a class="active" href="/">Accueuil</a>
                 <a href="/filter?by=liked">Liked Posts</a>
                 <a href="/filter?by=myposts">My Posts</a>
                 <a href="/newpost">New post</a>
                 <a href="/api/logout">Log out</a>
+                <a href="/profile">Profile</a> 
             </div>
         </div>
         {{else}}

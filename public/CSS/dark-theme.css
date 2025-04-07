@@ -1,0 +1,67 @@
+body, 
+.xx, 
+div.xx,
+.containerdetail,
+.post-content,
+.body,
+.comments-container,
+.comment-area {
+    background-color: #121212 !important; /* Dark background */
+}
+
+/* Target the specific user profile container */
+.xx {
+    background-color: #121212 !important;
+    border: 1px solid #FF6B00 !important;
+}
+
+/* Target the avatar container */
+.body, .authors {
+    background-color: #1E1E1E !important;
+}
+
+/* Target the line under the profile that's still turquoise */
+hr, 
+.subforum-devider,
+.containerdetail > div:not(.subforum-title) {
+    border-color: #FF6B00 !important;
+    background-color: #FF6B00 !important;
+}
+
+/* Ensure all buttons maintain orange background */
+button,
+.supprimer-post,
+input[type="submit"] {
+    background-color: #FF6B00 !important;
+    color: white !important;
+    border: none !important;
+    padding: 10px 20px !important;
+    border-radius: 5px !important;
+    cursor: pointer !important;
+}
+
+/* Target the orange button container at the bottom */
+.supprimer-ce-post {
+    background-color: #FF6B00 !important;
+}
+
+/* Ensure links and text are visible */
+a, p, span, h1, h2, h3, h4, h5, h6 {
+    color: white !important;
+}
+
+a:hover {
+    color: #FF6B00 !important;
+}
+
+/* Specifically target the bottom section */
+body > div:last-child {
+    background-color: #121212 !important;
+}
+
+/* Target any remaining teal elements */
+[style*="background-color"], 
+[style*="background"], 
+[class*="bg-"] {
+    background-color: #121212 !important;
+}
