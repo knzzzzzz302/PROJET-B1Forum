@@ -416,7 +416,4 @@ func DeleteCommentHandler(w http.ResponseWriter, r *http.Request) {
 
     // Rediriger vers le post
     http.Redirect(w, r, "/post?id="+postIdStr, http.StatusFound)
-    
 }
-
-

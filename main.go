@@ -79,7 +79,7 @@ func main() {
     router.HandleFunc("/api/editprofile", webAPI.EditProfileHandler)
     router.HandleFunc("/api/changepassword", webAPI.ChangePasswordHandler)
     router.HandleFunc("/api/uploadprofileimage", webAPI.UploadProfileImageHandler)
-
+	router.HandleFunc("/api/editcomment", webAPI.EditCommentHandler)
 	router.Handle("/public/", http.StripPrefix("/public/", fs))
 	http.ListenAndServe(":3030", router)
 }
