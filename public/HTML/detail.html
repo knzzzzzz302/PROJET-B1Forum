@@ -7,11 +7,6 @@
     <link rel="stylesheet" href="public/CSS/style.css">
     <link rel="stylesheet" href="public/CSS/dark-theme.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <div class="login-container">
-    <form class="login-form" action="/api/login" method="post">
-        <!-- Reste du formulaire de connexion -->
-    </form>
-</div>
 </head>
 <body>
     <header>
@@ -19,21 +14,21 @@
         <div class="header">
             <a href="/" class="logo"><i class="fa fa-solid fa-user"></i>SEKKAY</a>
             <div class="header-right">
-                <a class="active" href="/">Accueuil</a>
-                <a href="/filter?by=liked">Liked Posts</a>
-                <a href="/filter?by=myposts">My Posts</a>
-                <a href="/newpost">New post</a>
-                <a href="/api/logout">Log out</a>
-                <a href="/profile">Profile</a> 
+                <a class="active" href="/">Accueil</a>
+                <a href="/filter?by=liked">Publications aimées</a>
+                <a href="/filter?by=myposts">Mes publications</a>
+                <a href="/newpost">Nouvelle publication</a>
+                <a href="/api/logout">Déconnexion</a>
+                <a href="/profile">Profil</a> 
             </div>
         </div>
         {{else}}
         <div class="header">
             <a href="/" class="logo"><i class="fa fa-solid fa-user"></i>SEKKAY</a>
             <div class="header-right">
-                <a class="active" href="/">Home</a>
-                <a href="/login">Login</a>
-                <a href="/register">Register</a>
+                <a class="active" href="/">Accueil</a>
+                <a href="/login">Connexion</a>
+                <a href="/register">Inscription</a>
             </div>
         </div>
         {{end}}
@@ -78,19 +73,25 @@
                     <span>{{.Post.DownVotes}}</span>
                 </div>
 
-                <!-- TOUJOURS afficher les boutons de suppression sans condition -->
-                <div style="margin: 20px 0; padding: 15px; background-color: #ff6b00; border-radius: 5px;">
+                <!-- Boutons de gestion du post -->
+                <div style="margin: 20px 0; padding: 15px; background-color: #ff6b00; border-radius: 5px; display: flex; gap: 15px;">
                     <form action="/api/deletepost" method="post" style="display: inline-block;">
                         <input type="hidden" name="postId" value="{{.Post.Id}}">
                         <button type="submit" style="background-color: red; color: white; padding: 10px 20px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;">
                             SUPPRIMER CE POST
                         </button>
                     </form>
+                    
+                    <a href="/editpost?postId={{.Post.Id}}" style="display: inline-block;">
+                        <button type="button" style="background-color: #0088ff; color: white; padding: 10px 20px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;">
+                            ÉDITER CE POST
+                        </button>
+                    </a>
                 </div>
 
                 {{if .User.IsLoggedIn}}
                 <div class="comment">
-                    <button onclick="document.getElementById('comment-area').style.display='block'">Comment</button>
+                    <button onclick="document.getElementById('comment-area').style.display='block'">Commenter</button>
                 </div>
                 {{end}}
                 <br>
@@ -125,9 +126,19 @@
                     <div class="comment-footer">
                         <span>{{.CreatedAt}}</span>
                         
-                        <!-- Bouton d'édition toujours visible pour le débogage initial -->
+                        <!-- Boutons d'action pour les commentaires -->
                         {{if $.User.IsLoggedIn}}
-                        <button class="edit-btn" onclick="showEditForm({{.Id}})">Éditer</button>
+                        <div style="display: flex; gap: 10px; margin-top: 10px;">
+                            <button class="edit-btn" onclick="showEditForm({{.Id}})" style="background-color: #0088ff;">Éditer</button>
+                            
+                            <form action="/api/deletecomment" method="post" style="display: inline-block;">
+                                <input type="hidden" name="commentId" value="{{.Id}}">
+                                <input type="hidden" name="postId" value="{{$.Post.Id}}">
+                                <button type="submit" style="background-color: red; color: white; padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer;">
+                                    Supprimer
+                                </button>
+                            </form>
+                        </div>
                         {{end}}
                     </div>
                     
@@ -150,13 +161,13 @@
     </div>
     
     <script>
-        // Fonction pour afficher le formulaire d'édition
+        // Fonction pour afficher le formulaire d'édition d'un commentaire
         function showEditForm(commentId) {
             document.getElementById('content-' + commentId).style.display = 'none';
             document.getElementById('edit-form-' + commentId).style.display = 'block';
         }
         
-        // Fonction pour masquer le formulaire d'édition
+        // Fonction pour masquer le formulaire d'édition d'un commentaire
         function hideEditForm(commentId) {
             document.getElementById('content-' + commentId).style.display = 'block';
             document.getElementById('edit-form-' + commentId).style.display = 'none';

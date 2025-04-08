@@ -3,9 +3,11 @@ package webAPI
 import (
 	"FORUM-GO/databaseAPI"
 	"database/sql"
-	_ "github.com/mattn/go-sqlite3"
+	"fmt"
 	"html/template"
 	"net/http"
+	"strconv"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type User struct {
@@ -28,6 +30,11 @@ type PostsPage struct {
 }
 
 type PostPage struct {
+	User User
+	Post databaseAPI.Post
+}
+
+type EditPostPageData struct {
 	User User
 	Post databaseAPI.Post
 }
@@ -156,6 +163,50 @@ func NewPost(w http.ResponseWriter, r *http.Request) {
 	}
 	t, _ := template.ParseGlob("public/HTML/*.html")
 	t.ExecuteTemplate(w, "createThread.html", nil)
+}
+
+// EditPostPage affiche la page d'édition d'un post
+func EditPostPage(w http.ResponseWriter, r *http.Request) {
+    if !isLoggedIn(r) {
+        http.Redirect(w, r, "/login", http.StatusFound)
+        return
+    }
+    
+    id := r.URL.Query().Get("postId")
+    post := databaseAPI.GetPost(database, id)
+    
+    // Vérifier si l'utilisateur est le propriétaire du post
+    cookie, _ := r.Cookie("SESSION")
+    username := databaseAPI.GetUser(database, cookie.Value)
+    
+    postId, err := strconv.Atoi(id)
+    if err != nil {
+        http.Error(w, "ID de post invalide", http.StatusBadRequest)
+        return
+    }
+    
+    if !databaseAPI.IsPostOwner(database, username, postId) {
+        http.Error(w, "Non autorisé - Vous n'êtes pas le propriétaire de ce post", http.StatusUnauthorized)
+        return
+    }
+    
+    payload := EditPostPageData{
+        Post: post,
+        User: User{IsLoggedIn: true, Username: username},
+    }
+    
+    t, err := template.ParseFiles("public/HTML/editpost.html")
+    if err != nil {
+        fmt.Println("Erreur lors du chargement du template:", err)
+        http.Error(w, "Erreur interne du serveur", http.StatusInternalServerError)
+        return
+    }
+    
+    err = t.Execute(w, payload)
+    if err != nil {
+        fmt.Println("Erreur lors de l'exécution du template:", err)
+        http.Error(w, "Erreur interne du serveur", http.StatusInternalServerError)
+    }
 }
 
 // inArray check if a string is in an array
