@@ -12,44 +12,6 @@
         <!-- Reste du formulaire de connexion -->
     </form>
 </div>
-<style>
-    /* Style minimal pour les boutons d'édition */
-    .edit-comment-btn {
-        background-color: #FF6B00;
-        color: white;
-        border: none;
-        padding: 5px 10px;
-        border-radius: 5px;
-        cursor: pointer;
-        margin-left: 10px;
-    }
-    
-    .edit-comment-form {
-        margin-top: 10px;
-        display: none;
-    }
-    
-    .edit-comment-form textarea {
-        width: 100%;
-        min-height: 100px;
-        background-color: #1E1E1E;
-        color: white;
-        border: 1px solid #333;
-        padding: 10px;
-        border-radius: 5px;
-        margin-bottom: 10px;
-    }
-    
-    .edit-btns button {
-        background-color: #FF6B00;
-        color: white;
-        border: none;
-        padding: 5px 10px;
-        border-radius: 5px;
-        cursor: pointer;
-        margin-right: 10px;
-    }
-</style>
 </head>
 <body>
     <header>
@@ -147,7 +109,7 @@
         
         <!--Comments Section-->
         {{range .Post.Comments}}
-        <div class="comments-container" id="comment-{{.Id}}">
+        <div class="comments-container">
             <div class="body">
                 <div class="authors">
                     <div class="username"><a>{{.Username}}</a></div>
@@ -155,34 +117,32 @@
                 </div>
                 <br>
                 <div class="content">
-                    <div class="post-content" id="comment-content-{{.Id}}">
+                    <div class="post-content" id="content-{{.Id}}">
                         <p>{{.Content}}</p>
                     </div>
                     <br>
                     <hr>
-                    <div style="display: flex; align-items: center;">
+                    <div class="comment-footer">
                         <span>{{.CreatedAt}}</span>
                         
-                        <!-- Bouton d'édition (visible uniquement pour l'auteur du commentaire) -->
-                        {{if and $.User.IsLoggedIn (eq $.User.Username .Username)}}
-                        <button class="edit-comment-btn" onclick="toggleEditForm('{{.Id}}')">Éditer</button>
+                        <!-- Bouton d'édition toujours visible pour le débogage initial -->
+                        {{if $.User.IsLoggedIn}}
+                        <button class="edit-btn" onclick="showEditForm({{.Id}})">Éditer</button>
                         {{end}}
                     </div>
                     
-                    <!-- Formulaire d'édition (caché par défaut) -->
-                    {{if and $.User.IsLoggedIn (eq $.User.Username .Username)}}
-                    <div class="edit-comment-form" id="edit-form-{{.Id}}">
+                    <!-- Formulaire d'édition de commentaire -->
+                    <div id="edit-form-{{.Id}}" class="edit-form" style="display: none;">
                         <form action="/api/editcomment" method="post">
                             <input type="hidden" name="commentId" value="{{.Id}}">
                             <input type="hidden" name="postId" value="{{$.Post.Id}}">
                             <textarea name="content">{{.Content}}</textarea>
-                            <div class="edit-btns">
+                            <div>
                                 <button type="submit">Enregistrer</button>
-                                <button type="button" onclick="toggleEditForm('{{.Id}}')">Annuler</button>
+                                <button type="button" class="cancel" onclick="hideEditForm({{.Id}})">Annuler</button>
                             </div>
                         </form>
                     </div>
-                    {{end}}
                 </div>
             </div>
         </div>
@@ -190,18 +150,16 @@
     </div>
     
     <script>
-        // Fonction pour basculer l'affichage du formulaire d'édition
-        function toggleEditForm(commentId) {
-            var commentContent = document.getElementById('comment-content-' + commentId);
-            var editForm = document.getElementById('edit-form-' + commentId);
-            
-            if (editForm.style.display === 'block') {
-                commentContent.style.display = 'block';
-                editForm.style.display = 'none';
-            } else {
-                commentContent.style.display = 'none';
-                editForm.style.display = 'block';
-            }
+        // Fonction pour afficher le formulaire d'édition
+        function showEditForm(commentId) {
+            document.getElementById('content-' + commentId).style.display = 'none';
+            document.getElementById('edit-form-' + commentId).style.display = 'block';
+        }
+        
+        // Fonction pour masquer le formulaire d'édition
+        function hideEditForm(commentId) {
+            document.getElementById('content-' + commentId).style.display = 'block';
+            document.getElementById('edit-form-' + commentId).style.display = 'none';
         }
     </script>
 </body>
