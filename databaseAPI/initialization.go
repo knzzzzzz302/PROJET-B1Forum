@@ -35,6 +35,12 @@ func CreateCategoriesTable(database *sql.DB) {
 	statement.Exec()
 }
 
+
+// CreateCommentLikesTable crée la table des likes de commentaires
+func CreateCommentLikesTable(database *sql.DB) {
+    statement, _ := database.Prepare("CREATE TABLE IF NOT EXISTS comment_likes (id INTEGER PRIMARY KEY AUTOINCREMENT, comment_id INTEGER NOT NULL, user_id INTEGER NOT NULL, created_at TEXT, FOREIGN KEY (comment_id) REFERENCES comments(id), UNIQUE(comment_id, user_id))")
+    statement.Exec()
+}
 // CreateCategories creates categories in the database
 // CreateCategories creates categories in the database
 func CreateCategories(database *sql.DB) {

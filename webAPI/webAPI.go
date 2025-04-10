@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"net/http"
 	"strconv"
+	"time"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -51,7 +52,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	if isLoggedIn(r) {
+	if checkUserLoggedIn(r) {
 		cookie, _ := r.Cookie("SESSION")
 		payload := HomePage{
 			User:              User{IsLoggedIn: true, Username: databaseAPI.GetUser(database, cookie.Value)},
@@ -81,20 +82,79 @@ func DisplayPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	id := r.URL.Query().Get("id")
-	payload := PostPage{
-		Post: databaseAPI.GetPost(database, id),
-	}
-	if !isLoggedIn(r) {
-		payload.User = User{IsLoggedIn: false}
+	post := databaseAPI.GetPost(database, id)
+	comments := databaseAPI.GetComments(database, id)
+	
+	// Information sur l'utilisateur actuel
+	var isUserLoggedIn bool
+	var username string
+	
+	if checkUserLoggedIn(r) {
+		cookie, _ := r.Cookie("SESSION")
+		username = databaseAPI.GetUser(database, cookie.Value)
+		isUserLoggedIn = true
+		
+		// Pour chaque commentaire, vérifier si l'utilisateur l'a liké
+		for i := range comments {
+			// Vérifier si l'utilisateur a liké ce commentaire
+			hasLiked := false
+			rows, err := database.Query(`
+				SELECT COUNT(*) FROM comment_likes 
+				JOIN users ON comment_likes.user_id = users.id
+				WHERE comment_likes.comment_id = ? AND users.username = ?
+			`, comments[i].Id, username)
+			
+			if err == nil {
+				if rows.Next() {
+					var count int
+					rows.Scan(&count)
+					hasLiked = count > 0
+				}
+				rows.Close()
+			}
+			
+			comments[i].UserLiked = hasLiked
+			
+			// Obtenir le nombre de likes
+			rows, err = database.Query("SELECT COUNT(*) FROM comment_likes WHERE comment_id = ?", comments[i].Id)
+			if err == nil {
+				if rows.Next() {
+					var count int
+					rows.Scan(&count)
+					comments[i].Likes = count
+				}
+				rows.Close()
+			}
+		}
 	} else {
-		payload.User = User{IsLoggedIn: true}
+		isUserLoggedIn = false
+		
+		// Pour chaque commentaire, obtenir juste le nombre de likes
+		for i := range comments {
+			rows, err := database.Query("SELECT COUNT(*) FROM comment_likes WHERE comment_id = ?", comments[i].Id)
+			if err == nil {
+				if rows.Next() {
+					var count int
+					rows.Scan(&count)
+					comments[i].Likes = count
+				}
+				rows.Close()
+			}
+		}
 	}
-	payload.Post.Comments = databaseAPI.GetComments(database, id)
+	
+	post.Comments = comments
+	
+	payload := PostPage{
+		Post: post,
+		User: User{IsLoggedIn: isUserLoggedIn, Username: username},
+	}
+	
 	t, _ := template.ParseGlob("public/HTML/*.html")
 	t.ExecuteTemplate(w, "detail.html", payload)
 }
 
-// GetPostsByApi GetPostByApi gets all post filtered by the given parameters
+// GetPostsByApi gets all post filtered by the given parameters
 func GetPostsByApi(w http.ResponseWriter, r *http.Request) {
 	method := r.URL.Query().Get("by")
 	if method == "category" {
@@ -105,7 +165,7 @@ func GetPostsByApi(w http.ResponseWriter, r *http.Request) {
 			Posts: posts,
 			Icon:  databaseAPI.GetCategoryIcon(database, category),
 		}
-		if isLoggedIn(r) {
+		if checkUserLoggedIn(r) {
 			payload.User = User{IsLoggedIn: true}
 		}
 		t, _ := template.ParseGlob("public/HTML/*.html")
@@ -113,7 +173,7 @@ func GetPostsByApi(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if method == "myposts" {
-		if isLoggedIn(r) {
+		if checkUserLoggedIn(r) {
 			cookie, _ := r.Cookie("SESSION")
 			username := databaseAPI.GetUser(database, cookie.Value)
 			posts := databaseAPI.GetPostsByUser(database, username)
@@ -131,7 +191,7 @@ func GetPostsByApi(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if method == "liked" {
-		if isLoggedIn(r) {
+		if checkUserLoggedIn(r) {
 			cookie, _ := r.Cookie("SESSION")
 			username := databaseAPI.GetUser(database, cookie.Value)
 			posts := databaseAPI.GetLikedPosts(database, username)
@@ -157,7 +217,7 @@ func NewPost(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
-	if !isLoggedIn(r) {
+	if !checkUserLoggedIn(r) {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
@@ -167,7 +227,7 @@ func NewPost(w http.ResponseWriter, r *http.Request) {
 
 // EditPostPage affiche la page d'édition d'un post
 func EditPostPage(w http.ResponseWriter, r *http.Request) {
-    if !isLoggedIn(r) {
+    if !checkUserLoggedIn(r) {
         http.Redirect(w, r, "/login", http.StatusFound)
         return
     }
@@ -207,6 +267,98 @@ func EditPostPage(w http.ResponseWriter, r *http.Request) {
         fmt.Println("Erreur lors de l'exécution du template:", err)
         http.Error(w, "Erreur interne du serveur", http.StatusInternalServerError)
     }
+}
+
+// CommentLikeApi gère les likes des commentaires
+func CommentLikeApi(w http.ResponseWriter, r *http.Request) {
+    if r.Method != "POST" {
+        http.Error(w, "Méthode non autorisée", http.StatusMethodNotAllowed)
+        return
+    }
+
+    // Vérifier si l'utilisateur est connecté
+    if !checkUserLoggedIn(r) {
+        http.Redirect(w, r, "/login", http.StatusFound)
+        return
+    }
+
+    // Récupérer l'utilisateur courant
+    cookie, err := r.Cookie("SESSION")
+    if err != nil {
+        http.Error(w, "Erreur de session", http.StatusUnauthorized)
+        return
+    }
+
+    username := databaseAPI.GetUser(database, cookie.Value)
+    
+    if err := r.ParseForm(); err != nil {
+        http.Error(w, "Erreur lors du parsing du formulaire", http.StatusBadRequest)
+        return
+    }
+    
+    commentIdStr := r.FormValue("commentId")
+    postIdStr := r.FormValue("postId")
+    
+    commentId, err := strconv.Atoi(commentIdStr)
+    if err != nil {
+        http.Error(w, "ID de commentaire invalide", http.StatusBadRequest)
+        return
+    }
+
+    // Obtenir l'ID utilisateur
+    var userId int
+    err = database.QueryRow("SELECT id FROM users WHERE username = ?", username).Scan(&userId)
+    if err != nil {
+        http.Error(w, "Erreur de récupération d'utilisateur: "+err.Error(), http.StatusInternalServerError)
+        return
+    }
+    
+    // Vérifier si l'utilisateur a déjà liké ce commentaire
+    var likeExists bool
+    err = database.QueryRow("SELECT COUNT(*) > 0 FROM comment_likes WHERE comment_id = ? AND user_id = ?", 
+        commentId, userId).Scan(&likeExists)
+    if err != nil {
+        http.Error(w, "Erreur lors de la vérification du like: "+err.Error(), http.StatusInternalServerError)
+        return
+    }
+    
+    if likeExists {
+        // Supprimer le like existant
+        _, err = database.Exec("DELETE FROM comment_likes WHERE comment_id = ? AND user_id = ?", 
+            commentId, userId)
+    } else {
+        // Ajouter un nouveau like
+        _, err = database.Exec("INSERT INTO comment_likes (comment_id, user_id, created_at) VALUES (?, ?, ?)", 
+            commentId, userId, time.Now().Format("2006-01-02 15:04:05"))
+    }
+    
+    if err != nil {
+        http.Error(w, "Erreur lors du traitement du like: "+err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    // Rediriger vers la page du post
+    http.Redirect(w, r, "/post?id="+postIdStr, http.StatusSeeOther)
+}
+
+// checkUserLoggedIn vérifie si l'utilisateur est connecté
+func checkUserLoggedIn(r *http.Request) bool {
+    cookie, err := r.Cookie("SESSION")
+    if err != nil {
+        return false
+    }
+    cookieExists := databaseAPI.CheckCookie(database, cookie.Value)
+    if !cookieExists {
+        return false
+    }
+    expires := databaseAPI.GetExpires(database, cookie.Value)
+    
+    expiresTime, err := time.Parse("2006-01-02 15:04:05", expires)
+    if err != nil {
+        return false
+    }
+    
+    return !time.Now().After(expiresTime)
 }
 
 // inArray check if a string is in an array

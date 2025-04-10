@@ -22,4 +22,8 @@ type Comment struct {
 	Username  string
 	Content   string
 	CreatedAt string
+	Likes     int       
+    UserLiked bool  
+
+	
 }

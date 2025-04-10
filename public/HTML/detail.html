@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Forum</title>
     <link rel="stylesheet" href="public/CSS/style.css">
     <link rel="stylesheet" href="public/CSS/dark-theme.css">
+    <link rel="stylesheet" href="public/CSS/comment-likes.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
@@ -52,7 +53,7 @@
                 <br>
                 <hr>
                 
-                <!-- Boutons de vote -->
+                <!-- Boutons de vote pour le post -->
                 <div>
                     <form action="/api/vote" method="POST" style="display: inline-block;">
                         <input type="hidden" name="postId" value="{{.Post.Id}}">
@@ -67,13 +68,14 @@
                         <input type="hidden" name="postId" value="{{.Post.Id}}">
                         <input type="hidden" name="vote" value="-1">
                         <button type="submit">
-                            <img class="thumbsdown" src="https://img.icons8.com/material-outlined/24/undefined/thumb-up.png" style="margin: 0"/>
+                            <img class="thumbsdown" src="https://img.icons8.com/material-outlined/24/undefined/thumb-up.png" style="margin: 0; transform: rotate(180deg);"/>
                         </button>
                     </form>
                     <span>{{.Post.DownVotes}}</span>
                 </div>
 
-                <!-- Boutons de gestion du post -->
+                <!-- Boutons de gestion du post (si l'utilisateur est propriétaire) -->
+                {{if and .User.IsLoggedIn (eq .User.Username .Post.Username)}}
                 <div style="margin: 20px 0; padding: 15px; background-color: #ff6b00; border-radius: 5px; display: flex; gap: 15px;">
                     <form action="/api/deletepost" method="post" style="display: inline-block;">
                         <input type="hidden" name="postId" value="{{.Post.Id}}">
@@ -88,6 +90,7 @@
                         </button>
                     </a>
                 </div>
+                {{end}}
 
                 {{if .User.IsLoggedIn}}
                 <div class="comment">
@@ -123,20 +126,41 @@
                     </div>
                     <br>
                     <hr>
+                    
+                    <!-- Bouton de like pour les commentaires -->
+                    <div class="comment-like-section">
+                        {{if $.User.IsLoggedIn}}
+                        <form action="/api/commentlike" method="POST">
+                            <input type="hidden" name="commentId" value="{{.Id}}">
+                            <input type="hidden" name="postId" value="{{$.Post.Id}}">
+                            <button type="submit" class="comment-like-button {{if .UserLiked}}liked{{end}}">
+                                {{if .UserLiked}}
+                                    <i class="fa fa-heart"></i>
+                                {{else}}
+                                    <i class="fa fa-heart-o"></i>
+                                {{end}}
+                                <span class="like-count">{{.Likes}}</span>
+                            </button>
+                        </form>
+                        {{else}}
+                        <span class="comment-like-count">
+                            <i class="fa fa-heart-o"></i> {{.Likes}}
+                        </span>
+                        {{end}}
+                    </div>
+                    
                     <div class="comment-footer">
                         <span>{{.CreatedAt}}</span>
                         
-                        <!-- Boutons d'action pour les commentaires -->
-                        {{if $.User.IsLoggedIn}}
-                        <div style="display: flex; gap: 10px; margin-top: 10px;">
-                            <button class="edit-btn" onclick="showEditForm({{.Id}})" style="background-color: #0088ff;">Éditer</button>
+                        <!-- Boutons d'action pour les commentaires (si l'utilisateur est propriétaire) -->
+                        {{if and $.User.IsLoggedIn (eq $.User.Username .Username)}}
+                        <div class="comment-actions">
+                            <button class="edit-btn" onclick="showEditForm({{.Id}})">Éditer</button>
                             
-                            <form action="/api/deletecomment" method="post" style="display: inline-block;">
+                            <form action="/api/deletecomment" method="post">
                                 <input type="hidden" name="commentId" value="{{.Id}}">
                                 <input type="hidden" name="postId" value="{{$.Post.Id}}">
-                                <button type="submit" style="background-color: red; color: white; padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer;">
-                                    Supprimer
-                                </button>
+                                <button type="submit" class="delete-btn">Supprimer</button>
                             </form>
                         </div>
                         {{end}}

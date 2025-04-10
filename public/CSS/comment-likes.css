@@ -1,0 +1,101 @@
+/* Styles for comment likes functionality */
+.comment-like-section {
+    margin: 10px 0;
+    display: flex;
+    align-items: center;
+}
+
+.comment-like-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px 10px;
+    font-size: 16px;
+    border-radius: 5px;
+    color: white;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.comment-like-button:hover {
+    background-color: rgba(255, 107, 0, 0.1);
+}
+
+.comment-like-button.liked {
+    color: #FF6B00;
+}
+
+.like-count {
+    margin-left: 5px;
+}
+
+.comment-like-count {
+    color: #CCC;
+    font-size: 14px;
+}
+
+.comment-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    color: #AAA;
+    font-size: 12px;
+}
+
+.comment-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.edit-btn {
+    background-color: #0088ff;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.delete-btn {
+    background-color: red;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.edit-form {
+    margin-top: 10px;
+}
+
+.edit-form textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: #333;
+    color: white;
+    border: 1px solid #555;
+    border-radius: 5px;
+}
+
+.edit-form button {
+    padding: 5px 15px;
+    margin-right: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.edit-form button[type="submit"] {
+    background-color: #0088ff;
+    color: white;
+}
+
+.edit-form button.cancel {
+    background-color: #555;
+    color: white;
+}
