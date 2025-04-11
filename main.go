@@ -56,6 +56,7 @@ func main() {
 	databaseAPI.CreateCategories(database)
 	databaseAPI.CreateCategoriesIcons(database)
 	databaseAPI.CreateCommentLikesTable(database)
+	
 
 	webAPI.SetDatabase(database)
 
@@ -86,6 +87,6 @@ func main() {
 	router.HandleFunc("/api/editpost", webAPI.EditPostHandler)
 	router.HandleFunc("/api/deletecomment", webAPI.DeleteCommentHandler)
 	router.HandleFunc("/api/commentlike", webAPI.CommentLikeApi)
-databaseAPI.CreateCommentDislikesTable(database)
+
 	http.ListenAndServe(":3030", router)
 }
