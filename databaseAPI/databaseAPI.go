@@ -23,7 +23,9 @@ type Comment struct {
 	Content   string
 	CreatedAt string
 	Likes     int       
-    UserLiked bool  
+    UserLiked bool 
+	Dislikes     int       // Nouveau champ
+    UserDisliked bool
 
 	
 }

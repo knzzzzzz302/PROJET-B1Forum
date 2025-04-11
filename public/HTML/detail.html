@@ -8,6 +8,12 @@
     <link rel="stylesheet" href="public/CSS/dark-theme.css">
     <link rel="stylesheet" href="public/CSS/comment-likes.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        .comment-like-section {
+            display: flex;
+            gap: 10px;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -127,12 +133,14 @@
                     <br>
                     <hr>
                     
-                    <!-- Bouton de like pour les commentaires -->
+                    <!-- Boutons like et dislike pour les commentaires -->
                     <div class="comment-like-section">
                         {{if $.User.IsLoggedIn}}
+                        <!-- Bouton LIKE -->
                         <form action="/api/commentlike" method="POST">
                             <input type="hidden" name="commentId" value="{{.Id}}">
                             <input type="hidden" name="postId" value="{{$.Post.Id}}">
+                            <input type="hidden" name="action" value="like">
                             <button type="submit" class="comment-like-button {{if .UserLiked}}liked{{end}}">
                                 {{if .UserLiked}}
                                     <i class="fa fa-heart"></i>
@@ -142,9 +150,27 @@
                                 <span class="like-count">{{.Likes}}</span>
                             </button>
                         </form>
+                        
+                        <!-- Bouton DISLIKE -->
+                        <form action="/api/commentlike" method="POST">
+                            <input type="hidden" name="commentId" value="{{.Id}}">
+                            <input type="hidden" name="postId" value="{{$.Post.Id}}">
+                            <input type="hidden" name="action" value="dislike">
+                            <button type="submit" class="comment-dislike-button {{if .UserDisliked}}disliked{{end}}">
+                                {{if .UserDisliked}}
+                                    <i class="fa fa-thumbs-down"></i>
+                                {{else}}
+                                    <i class="fa fa-thumbs-o-down"></i>
+                                {{end}}
+                                <span class="dislike-count">{{.Dislikes}}</span>
+                            </button>
+                        </form>
                         {{else}}
                         <span class="comment-like-count">
                             <i class="fa fa-heart-o"></i> {{.Likes}}
+                        </span>
+                        <span class="comment-dislike-count">
+                            <i class="fa fa-thumbs-o-down"></i> {{.Dislikes}}
                         </span>
                         {{end}}
                     </div>

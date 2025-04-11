@@ -94,7 +94,7 @@ func DisplayPost(w http.ResponseWriter, r *http.Request) {
 		username = databaseAPI.GetUser(database, cookie.Value)
 		isUserLoggedIn = true
 		
-		// Pour chaque commentaire, vérifier si l'utilisateur l'a liké
+		// Pour chaque commentaire, vérifier si l'utilisateur l'a liké ou disliké
 		for i := range comments {
 			// Vérifier si l'utilisateur a liké ce commentaire
 			hasLiked := false
@@ -115,6 +115,25 @@ func DisplayPost(w http.ResponseWriter, r *http.Request) {
 			
 			comments[i].UserLiked = hasLiked
 			
+			// Vérifier si l'utilisateur a disliké ce commentaire
+			hasDisliked := false
+			rows, err = database.Query(`
+				SELECT COUNT(*) FROM comment_dislikes 
+				JOIN users ON comment_dislikes.user_id = users.id
+				WHERE comment_dislikes.comment_id = ? AND users.username = ?
+			`, comments[i].Id, username)
+			
+			if err == nil {
+				if rows.Next() {
+					var count int
+					rows.Scan(&count)
+					hasDisliked = count > 0
+				}
+				rows.Close()
+			}
+			
+			comments[i].UserDisliked = hasDisliked
+			
 			// Obtenir le nombre de likes
 			rows, err = database.Query("SELECT COUNT(*) FROM comment_likes WHERE comment_id = ?", comments[i].Id)
 			if err == nil {
@@ -125,18 +144,41 @@ func DisplayPost(w http.ResponseWriter, r *http.Request) {
 				}
 				rows.Close()
 			}
+			
+			// Obtenir le nombre de dislikes
+			rows, err = database.Query("SELECT COUNT(*) FROM comment_dislikes WHERE comment_id = ?", comments[i].Id)
+			if err == nil {
+				if rows.Next() {
+					var count int
+					rows.Scan(&count)
+					comments[i].Dislikes = count
+				}
+				rows.Close()
+			}
 		}
 	} else {
 		isUserLoggedIn = false
 		
-		// Pour chaque commentaire, obtenir juste le nombre de likes
+		// Pour chaque commentaire, obtenir juste le nombre de likes et dislikes
 		for i := range comments {
+			// Obtenir le nombre de likes
 			rows, err := database.Query("SELECT COUNT(*) FROM comment_likes WHERE comment_id = ?", comments[i].Id)
 			if err == nil {
 				if rows.Next() {
 					var count int
 					rows.Scan(&count)
 					comments[i].Likes = count
+				}
+				rows.Close()
+			}
+			
+			// Obtenir le nombre de dislikes
+			rows, err = database.Query("SELECT COUNT(*) FROM comment_dislikes WHERE comment_id = ?", comments[i].Id)
+			if err == nil {
+				if rows.Next() {
+					var count int
+					rows.Scan(&count)
+					comments[i].Dislikes = count
 				}
 				rows.Close()
 			}
@@ -269,7 +311,7 @@ func EditPostPage(w http.ResponseWriter, r *http.Request) {
     }
 }
 
-// CommentLikeApi gère les likes des commentaires
+// CommentLikeApi gère les likes et dislikes des commentaires
 func CommentLikeApi(w http.ResponseWriter, r *http.Request) {
     if r.Method != "POST" {
         http.Error(w, "Méthode non autorisée", http.StatusMethodNotAllowed)
@@ -298,6 +340,7 @@ func CommentLikeApi(w http.ResponseWriter, r *http.Request) {
     
     commentIdStr := r.FormValue("commentId")
     postIdStr := r.FormValue("postId")
+    action := r.FormValue("action") // "like" ou "dislike"
     
     commentId, err := strconv.Atoi(commentIdStr)
     if err != nil {
@@ -313,27 +356,86 @@ func CommentLikeApi(w http.ResponseWriter, r *http.Request) {
         return
     }
     
-    // Vérifier si l'utilisateur a déjà liké ce commentaire
-    var likeExists bool
-    err = database.QueryRow("SELECT COUNT(*) > 0 FROM comment_likes WHERE comment_id = ? AND user_id = ?", 
-        commentId, userId).Scan(&likeExists)
-    if err != nil {
-        http.Error(w, "Erreur lors de la vérification du like: "+err.Error(), http.StatusInternalServerError)
-        return
+    if action == "like" {
+        // Vérifier si l'utilisateur a déjà liké ce commentaire
+        var likeExists bool
+        err = database.QueryRow("SELECT COUNT(*) > 0 FROM comment_likes WHERE comment_id = ? AND user_id = ?", 
+            commentId, userId).Scan(&likeExists)
+        if err != nil {
+            http.Error(w, "Erreur lors de la vérification du like: "+err.Error(), http.StatusInternalServerError)
+            return
+        }
+        
+        // Vérifier si l'utilisateur a déjà disliké ce commentaire
+        var dislikeExists bool
+        err = database.QueryRow("SELECT COUNT(*) > 0 FROM comment_dislikes WHERE comment_id = ? AND user_id = ?", 
+            commentId, userId).Scan(&dislikeExists)
+        if err != nil {
+            http.Error(w, "Erreur lors de la vérification du dislike: "+err.Error(), http.StatusInternalServerError)
+            return
+        }
+        
+        // Si un dislike existe, le supprimer d'abord
+        if dislikeExists {
+            _, err = database.Exec("DELETE FROM comment_dislikes WHERE comment_id = ? AND user_id = ?", 
+                commentId, userId)
+            if err != nil {
+                http.Error(w, "Erreur lors de la suppression du dislike: "+err.Error(), http.StatusInternalServerError)
+                return
+            }
+        }
+        
+        if likeExists {
+            // Si l'utilisateur a déjà liké, supprimer le like (toggle)
+            _, err = database.Exec("DELETE FROM comment_likes WHERE comment_id = ? AND user_id = ?", 
+                commentId, userId)
+        } else {
+            // Sinon, ajouter un nouveau like
+            _, err = database.Exec("INSERT INTO comment_likes (comment_id, user_id, created_at) VALUES (?, ?, ?)", 
+                commentId, userId, time.Now().Format("2006-01-02 15:04:05"))
+        }
+    } else if action == "dislike" {
+        // Vérifier si l'utilisateur a déjà disliké ce commentaire
+        var dislikeExists bool
+        err = database.QueryRow("SELECT COUNT(*) > 0 FROM comment_dislikes WHERE comment_id = ? AND user_id = ?", 
+            commentId, userId).Scan(&dislikeExists)
+        if err != nil {
+            http.Error(w, "Erreur lors de la vérification du dislike: "+err.Error(), http.StatusInternalServerError)
+            return
+        }
+        
+        // Vérifier si l'utilisateur a déjà liké ce commentaire
+        var likeExists bool
+        err = database.QueryRow("SELECT COUNT(*) > 0 FROM comment_likes WHERE comment_id = ? AND user_id = ?", 
+            commentId, userId).Scan(&likeExists)
+        if err != nil {
+            http.Error(w, "Erreur lors de la vérification du like: "+err.Error(), http.StatusInternalServerError)
+            return
+        }
+        
+        // Si un like existe, le supprimer d'abord
+        if likeExists {
+            _, err = database.Exec("DELETE FROM comment_likes WHERE comment_id = ? AND user_id = ?", 
+                commentId, userId)
+            if err != nil {
+                http.Error(w, "Erreur lors de la suppression du like: "+err.Error(), http.StatusInternalServerError)
+                return
+            }
+        }
+        
+        if dislikeExists {
+            // Si l'utilisateur a déjà disliké, supprimer le dislike (toggle)
+            _, err = database.Exec("DELETE FROM comment_dislikes WHERE comment_id = ? AND user_id = ?", 
+                commentId, userId)
+        } else {
+            // Sinon, ajouter un nouveau dislike
+            _, err = database.Exec("INSERT INTO comment_dislikes (comment_id, user_id, created_at) VALUES (?, ?, ?)", 
+                commentId, userId, time.Now().Format("2006-01-02 15:04:05"))
+        }
     }
     
-    if likeExists {
-        // Supprimer le like existant
-        _, err = database.Exec("DELETE FROM comment_likes WHERE comment_id = ? AND user_id = ?", 
-            commentId, userId)
-    } else {
-        // Ajouter un nouveau like
-        _, err = database.Exec("INSERT INTO comment_likes (comment_id, user_id, created_at) VALUES (?, ?, ?)", 
-            commentId, userId, time.Now().Format("2006-01-02 15:04:05"))
-    }
-    
     if err != nil {
-        http.Error(w, "Erreur lors du traitement du like: "+err.Error(), http.StatusInternalServerError)
+        http.Error(w, "Erreur lors du traitement de la réaction: "+err.Error(), http.StatusInternalServerError)
         return
     }
 
