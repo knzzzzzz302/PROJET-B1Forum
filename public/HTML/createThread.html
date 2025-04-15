@@ -7,7 +7,56 @@
     <meta charset="UTF-8">
     <title>Créer une publication - Sekkay</title>
     <link rel="stylesheet" href="public/CSS/orangeblacktheme.css">
-    
+    <style>
+        .image-upload {
+            margin-top: 20px;
+            border: 2px dashed #555;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            background-color: #111;
+        }
+        
+        .image-upload-title {
+            color: var(--primary-orange);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .image-upload-info {
+            color: #888;
+            font-size: 0.85rem;
+            margin-bottom: 15px;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .file-label {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: var(--primary-orange);
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .file-label:hover {
+            background-color: var(--hover-color);
+        }
+        
+        .selected-files {
+            margin-top: 10px;
+            text-align: left;
+        }
+        
+        .selected-file {
+            padding: 5px 0;
+            color: #CCC;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -24,7 +73,7 @@
     </header>
 
     <div class="create-post-container">
-        <form class="post-form" action="/api/createpost" method="post">
+        <form class="post-form" action="/api/createpost" method="post" enctype="multipart/form-data">
             <h1>CRÉER UNE PUBLICATION</h1>
             <p>Partagez vos pensées avec la communauté Sekkay</p>
 
@@ -50,12 +99,18 @@
                     required
                 ></textarea>
             </div>
+            
+            <div class="image-upload">
+                <div class="image-upload-title">Ajouter des images</div>
+                <div class="image-upload-info">Formats acceptés: JPG, PNG, GIF | Taille max: 10MB | Max 5 images</div>
+                <label for="images" class="file-label">Sélectionner des fichiers</label>
+                <input type="file" id="images" name="images" accept="image/*" multiple class="file-input">
+                <div id="selected-files" class="selected-files"></div>
+            </div>
 
             <div class="categories-section">
                 <h2>Sélectionnez des catégories</h2>
                 <div class="categories-grid">
-                   
-                    </label>
                     <label class="category-tag">
                         <input type="checkbox" name="categories[]" value="Technologie">
                         <span>Technologie</span>
@@ -122,5 +177,28 @@
             <button type="submit" class="submit-button">Publier</button>
         </form>
     </div>
+    
+    <script>
+        // Script pour limiter le nombre d'images à 5
+        document.getElementById('images').addEventListener('change', function() {
+            if (this.files.length > 5) {
+                alert('Vous ne pouvez pas télécharger plus de 5 images.');
+                this.value = '';
+                document.getElementById('selected-files').innerHTML = '';
+                return;
+            }
+            
+            // Afficher les noms des fichiers sélectionnés
+            const selectedFilesDiv = document.getElementById('selected-files');
+            selectedFilesDiv.innerHTML = '';
+            
+            for (let i = 0; i < this.files.length; i++) {
+                const fileInfo = document.createElement('div');
+                fileInfo.className = 'selected-file';
+                fileInfo.textContent = this.files[i].name;
+                selectedFilesDiv.appendChild(fileInfo);
+            }
+        });
+    </script>
 </body>
 </html>

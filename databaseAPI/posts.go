@@ -19,7 +19,44 @@ func GetPost(database *sql.DB, id string) Post {
 		categoriesArray := strings.Split(catString, ",")
 		post.Categories = categoriesArray
 	}
+	
+	// Récupérer les images du post
+	post.Images = GetPostImages(database, post.Id)
+	
 	return post
+}
+
+// GetPostImages récupère les images d'un post
+func GetPostImages(database *sql.DB, postId int) []string {
+	rows, err := database.Query("SELECT image_path FROM post_images WHERE post_id = ?", postId)
+	if err != nil {
+		return []string{}
+	}
+	defer rows.Close()
+	
+	var images []string
+	for rows.Next() {
+		var imagePath string
+		err := rows.Scan(&imagePath)
+		if err != nil {
+			continue
+		}
+		images = append(images, imagePath)
+	}
+	
+	return images
+}
+
+// AddPostImage ajoute une image à un post
+func AddPostImage(database *sql.DB, postId int, imagePath string) error {
+	statement, err := database.Prepare("INSERT INTO post_images (post_id, image_path) VALUES (?, ?)")
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
+	
+	_, err = statement.Exec(postId, imagePath)
+	return err
 }
 
 // GetComments récupère les commentaires d'un post
@@ -43,6 +80,7 @@ func GetPostsByCategory(database *sql.DB, category string) []Post {
 		var catString string
 		rows.Scan(&post.Id, &post.Username, &post.Title, &catString, &post.Content, &post.CreatedAt, &post.UpVotes, &post.DownVotes)
 		post.Categories = strings.Split(catString, ",")
+		post.Images = GetPostImages(database, post.Id)
 		posts = append(posts, post)
 	}
 	return posts
@@ -67,6 +105,7 @@ func GetPostsByUser(database *sql.DB, username string) []Post {
 		var catString string
 		rows.Scan(&post.Id, &post.Username, &post.Title, &catString, &post.Content, &post.CreatedAt, &post.UpVotes, &post.DownVotes)
 		post.Categories = strings.Split(catString, ",")
+		post.Images = GetPostImages(database, post.Id)
 		posts = append(posts, post)
 	}
 	return posts
@@ -81,6 +120,7 @@ func GetLikedPosts(database *sql.DB, username string) []Post {
 		var catString string
 		rows.Scan(&post.Id, &post.Username, &post.Title, &catString, &post.Content, &post.CreatedAt, &post.UpVotes, &post.DownVotes)
 		post.Categories = strings.Split(catString, ",")
+		post.Images = GetPostImages(database, post.Id)
 		posts = append(posts, post)
 	}
 	return posts
@@ -121,10 +161,12 @@ func GetCategoryIcon(database *sql.DB, category string) string {
 }
 
 // CreatePost crée un nouveau post
-func CreatePost(database *sql.DB, username string, title string, categories string, content string, createdAt time.Time) {
+func CreatePost(database *sql.DB, username string, title string, categories string, content string, createdAt time.Time) int64 {
 	createdAtString := createdAt.Format("2006-01-02 15:04:05")
 	statement, _ := database.Prepare("INSERT INTO posts (username, title, categories, content, created_at, upvotes, downvotes) VALUES (?, ?, ?, ?, ?, ?, ?)")
-	statement.Exec(username, title, categories, content, createdAtString, 0, 0)
+	result, _ := statement.Exec(username, title, categories, content, createdAtString, 0, 0)
+	postId, _ := result.LastInsertId()
+	return postId
 }
 
 // AddComment ajoute un commentaire à un post
@@ -149,7 +191,17 @@ func EditPost(database *sql.DB, postId int, title string, categories string, con
 
 // DeletePost supprime un post et ses commentaires associés
 func DeletePost(database *sql.DB, postId int) bool {
-	// Supprimer d'abord les votes associés
+	// Supprimer d'abord les images associées
+	statementImages, err := database.Prepare("DELETE FROM post_images WHERE post_id = ?")
+	if err != nil {
+		return false
+	}
+	_, err = statementImages.Exec(postId)
+	if err != nil {
+		return false
+	}
+	
+	// Supprimer les votes associés
 	statementVotes, err := database.Prepare("DELETE FROM votes WHERE post_id = ?")
 	if err != nil {
 		return false

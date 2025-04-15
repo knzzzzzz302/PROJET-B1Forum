@@ -7,6 +7,8 @@ import (
     "io"
     "net/http"
     "os"
+    "path/filepath"
+    "strings"
     "time"
 )
 
@@ -160,6 +162,7 @@ func UploadProfileImageHandler(w http.ResponseWriter, r *http.Request) {
     // Parsing du formulaire multipart
     err := r.ParseMultipartForm(10 << 20) // 10 MB max
     if err != nil {
+        fmt.Println("Erreur lors du parsing du formulaire:", err)
         http.Error(w, "Erreur lors du parsing du formulaire", http.StatusBadRequest)
         return
     }
@@ -167,32 +170,56 @@ func UploadProfileImageHandler(w http.ResponseWriter, r *http.Request) {
     // Récupération du fichier
     file, handler, err := r.FormFile("profile_image")
     if err != nil {
-        http.Error(w, "Erreur lors de la récupération du fichier", http.StatusBadRequest)
+        fmt.Println("Erreur lors de la récupération du fichier:", err)
+        http.Redirect(w, r, "/profile?msg=file_upload_error", http.StatusFound)
         return
     }
     defer file.Close()
+    
+    // Vérifier le type MIME
+    buff := make([]byte, 512)
+    _, err = file.Read(buff)
+    if err != nil {
+        fmt.Println("Erreur lors de la lecture du fichier:", err)
+        http.Redirect(w, r, "/profile?msg=file_read_error", http.StatusFound)
+        return
+    }
+    
+    filetype := http.DetectContentType(buff)
+    if !strings.HasPrefix(filetype, "image/") {
+        fmt.Println("Type de fichier non autorisé:", filetype)
+        http.Redirect(w, r, "/profile?msg=file_type_error", http.StatusFound)
+        return
+    }
+    
+    // Repositionner le curseur au début du fichier
+    file.Seek(0, io.SeekStart)
     
     // Création d'un nom de fichier unique
     filename := fmt.Sprintf("%d_%s", time.Now().Unix(), handler.Filename)
     
     // Création du dossier d'uploads si nécessaire
     uploadDir := "public/uploads/profiles"
-    if err := os.MkdirAll(uploadDir, 0755); err != nil {
-        http.Error(w, fmt.Sprintf("Erreur lors de la création du dossier: %v", err), http.StatusInternalServerError)
+    err = os.MkdirAll(uploadDir, 0755)
+    if err != nil {
+        fmt.Println("Erreur lors de la création du dossier:", err)
+        http.Redirect(w, r, "/profile?msg=directory_error", http.StatusFound)
         return
     }
     
     // Création du fichier de destination
-    dst, err := os.Create(fmt.Sprintf("%s/%s", uploadDir, filename))
+    dst, err := os.Create(filepath.Join(uploadDir, filename))
     if err != nil {
-        http.Error(w, "Erreur serveur lors de la création du fichier", http.StatusInternalServerError)
+        fmt.Println("Erreur lors de la création du fichier:", err)
+        http.Redirect(w, r, "/profile?msg=file_create_error", http.StatusFound)
         return
     }
     defer dst.Close()
     
     // Copie du contenu
     if _, err = io.Copy(dst, file); err != nil {
-        http.Error(w, "Erreur lors de l'enregistrement du fichier", http.StatusInternalServerError)
+        fmt.Println("Erreur lors de la copie du fichier:", err)
+        http.Redirect(w, r, "/profile?msg=file_copy_error", http.StatusFound)
         return
     }
     
@@ -203,10 +230,11 @@ func UploadProfileImageHandler(w http.ResponseWriter, r *http.Request) {
     // Mise à jour de l'image de profil
     success := databaseAPI.UpdateProfileImage(database, username, filename)
     if !success {
-        http.Error(w, "Erreur lors de la mise à jour de l'image de profil", http.StatusInternalServerError)
+        fmt.Println("Erreur lors de la mise à jour de l'image de profil dans la DB")
+        http.Redirect(w, r, "/profile?msg=db_update_error", http.StatusFound)
         return
     }
     
     // Redirection
-    http.Redirect(w, r, "/profile", http.StatusFound)
+    http.Redirect(w, r, "/profile?msg=profile_image_updated", http.StatusFound)
 }

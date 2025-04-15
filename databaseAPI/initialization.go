@@ -2,6 +2,7 @@ package databaseAPI
 
 import (
 	"database/sql"
+	"fmt"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -9,6 +10,19 @@ import (
 func CreateUsersTable(database *sql.DB) {
 	statement, _ := database.Prepare("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT, email TEXT, password TEXT, cookie TEXT, expires TEXT)")
 	statement.Exec()
+}
+
+// AddProfileImageColumnIfNotExists ajoute la colonne profile_image à la table users si elle n'existe pas déjà
+func AddProfileImageColumnIfNotExists(database *sql.DB) {
+    // Vérifier si la colonne existe déjà
+    var count int
+    err := database.QueryRow("SELECT COUNT(*) FROM pragma_table_info('users') WHERE name='profile_image'").Scan(&count)
+    if err != nil || count == 0 {
+        // La colonne n'existe pas, l'ajouter
+        statement, _ := database.Prepare("ALTER TABLE users ADD COLUMN profile_image TEXT")
+        statement.Exec()
+        fmt.Println("Colonne profile_image ajoutée à la table users")
+    }
 }
 
 // CreatePostTable create post table
@@ -35,20 +49,18 @@ func CreateCategoriesTable(database *sql.DB) {
 	statement.Exec()
 }
 
-
 // CreateCommentLikesTable crée la table des likes de commentaires
 func CreateCommentLikesTable(database *sql.DB) {
     statement, _ := database.Prepare("CREATE TABLE IF NOT EXISTS comment_likes (id INTEGER PRIMARY KEY AUTOINCREMENT, comment_id INTEGER NOT NULL, user_id INTEGER NOT NULL, created_at TEXT, FOREIGN KEY (comment_id) REFERENCES comments(id), UNIQUE(comment_id, user_id))")
     statement.Exec()
 }
 
-
 // CreateCommentDislikesTable crée la table des dislikes de commentaires
 func CreateCommentDislikesTable(database *sql.DB) {
     statement, _ := database.Prepare("CREATE TABLE IF NOT EXISTS comment_dislikes (id INTEGER PRIMARY KEY AUTOINCREMENT, comment_id INTEGER NOT NULL, user_id INTEGER NOT NULL, created_at TEXT, FOREIGN KEY (comment_id) REFERENCES comments(id), UNIQUE(comment_id, user_id))")
     statement.Exec()
 }
-// CreateCategories creates categories in the database
+
 // CreateCategories creates categories in the database
 func CreateCategories(database *sql.DB) {
     statement, _ := database.Prepare("INSERT INTO categories (name) SELECT ? WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = ?)")

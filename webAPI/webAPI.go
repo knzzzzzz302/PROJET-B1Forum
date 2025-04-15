@@ -187,6 +187,9 @@ func DisplayPost(w http.ResponseWriter, r *http.Request) {
 	
 	post.Comments = comments
 	
+	// Récupérer les images du post
+	post.Images = databaseAPI.GetPostImages(database, post.Id)
+	
 	payload := PostPage{
 		Post: post,
 		User: User{IsLoggedIn: isUserLoggedIn, Username: username},

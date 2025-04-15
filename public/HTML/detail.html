@@ -13,6 +13,77 @@
             display: flex;
             gap: 10px;
         }
+        
+        /* Styles pour les images du post */
+        .post-images {
+            margin: 20px 0;
+        }
+        
+        .post-images h3 {
+            margin-bottom: 15px;
+            color: #FF6B00;
+        }
+        
+        .images-gallery {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .image-container {
+            max-width: 250px;
+            border: 1px solid #333;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .image-container img {
+            width: 100%;
+            height: auto;
+            display: block;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        .image-container img:hover {
+            transform: scale(1.05);
+        }
+        
+        /* Modal pour afficher les images en plein écran */
+        .image-modal {
+            display: none;
+            position: fixed;
+            z-index: 999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+        }
+        
+        .modal-content {
+            margin: auto;
+            display: block;
+            max-width: 90%;
+            max-height: 90%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 2px solid #555;
+            border-radius: 5px;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 1000;
+        }
     </style>
 </head>
 <body>
@@ -56,6 +127,21 @@
                 <div class="post-content">
                     <p>{{.Post.Content}}</p>
                 </div>
+                
+                <!-- Affichage des images du post -->
+                {{if .Post.Images}}
+                <div class="post-images">
+                    <h3>Images</h3>
+                    <div class="images-gallery">
+                        {{range $index, $image := .Post.Images}}
+                        <div class="image-container">
+                            <img src="{{$image}}" alt="Image {{$index}}" onclick="openModal('{{$image}}')">
+                        </div>
+                        {{end}}
+                    </div>
+                </div>
+                {{end}}
+                
                 <br>
                 <hr>
                 
@@ -210,6 +296,12 @@
         {{end}}
     </div>
     
+    <!-- Modal pour afficher les images en plein écran -->
+    <div id="imageModal" class="image-modal">
+        <span class="close-modal" onclick="closeModal()">&times;</span>
+        <img id="modalImage" class="modal-content">
+    </div>
+    
     <script>
         // Fonction pour afficher le formulaire d'édition d'un commentaire
         function showEditForm(commentId) {
@@ -222,6 +314,27 @@
             document.getElementById('content-' + commentId).style.display = 'block';
             document.getElementById('edit-form-' + commentId).style.display = 'none';
         }
+        
+        // Fonction pour ouvrir le modal d'image
+        function openModal(imageSrc) {
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('modalImage');
+            modal.style.display = 'block';
+            modalImg.src = imageSrc;
+        }
+        
+        // Fonction pour fermer le modal d'image
+        function closeModal() {
+            document.getElementById('imageModal').style.display = 'none';
+        }
+        
+        // Fermer le modal si l'utilisateur clique en dehors de l'image
+        window.onclick = function(event) {
+            const modal = document.getElementById('imageModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        };
     </script>
 </body>
 </html>

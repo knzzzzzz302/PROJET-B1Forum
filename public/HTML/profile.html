@@ -13,12 +13,12 @@
         <div class="header">
             <a href="/" class="logo"><i class="fa fa-solid fa-fire"></i>SEKKAY</a>
             <div class="header-right">
-                <a href="/">Accueuil</a>
-                <a href="/filter?by=liked">post liker</a>
-                <a href="/filter?by=myposts">Mes Posts</a>
-                <a href="/newpost">Nouveau post</a>
-                <a href="/profile" class="active">Profile</a>
-                <a href="/api/logout">Se déconnecter</a>
+                <a href="/">Accueil</a>
+                <a href="/filter?by=liked">Publications aimées</a>
+                <a href="/filter?by=myposts">Mes publications</a>
+                <a href="/newpost">Nouvelle publication</a>
+                <a href="/profile" class="active">Profil</a>
+                <a href="/api/logout">Déconnexion</a>
             </div>
         </div>
     </header>
@@ -31,11 +31,11 @@
         <div class="profile-content">
             <div class="profile-sidebar">
                 <div class="profile-avatar">
-                    <img src="{{if .ProfileImage}}/public/uploads/profiles/{{.ProfileImage}}{{else}}https://cdn-icons-png.flaticon.com/512/149/149071.png{{end}}" alt="Avatar">
+                    <img src="{{if .ProfileImage}}/public/uploads/profiles/{{.ProfileImage}}{{else}}https://cdn-icons-png.flaticon.com/512/149/149071.png{{end}}" alt="Avatar" id="profile-preview">
                     <form action="/api/uploadprofileimage" method="post" enctype="multipart/form-data" class="avatar-upload-form">
                         <label for="profile_image" class="upload-btn">Changer d'avatar</label>
                         <input type="file" id="profile_image" name="profile_image" accept="image/*" style="display: none;">
-                        <button type="submit" class="submit-btn">Télécharger</button>
+                        <button type="submit" class="submit-btn" id="upload-btn">Télécharger</button>
                     </form>
                 </div>
                 
@@ -59,10 +59,14 @@
                 <div class="info-section">
                     <h2>Informations personnelles</h2>
                     {{if .Message}}
-                    <div class="alert {{if eq .Message "profile_updated"}}success{{else}}error{{end}}">
+                    <div class="alert {{if eq .Message "profile_updated"}}success{{else}}{{if eq .Message "profile_image_updated"}}success{{else}}error{{end}}{{end}}">
                         {{if eq .Message "profile_updated"}}Profil mis à jour avec succès.{{end}}
+                        {{if eq .Message "profile_image_updated"}}Image de profil mise à jour avec succès.{{end}}
                         {{if eq .Message "update_failed"}}Échec de la mise à jour du profil.{{end}}
                         {{if eq .Message "empty_fields"}}Tous les champs sont obligatoires.{{end}}
+                        {{if eq .Message "file_upload_error"}}Erreur lors de l'upload de l'image.{{end}}
+                        {{if eq .Message "file_type_error"}}Type de fichier non autorisé. Utilisez JPG, PNG ou GIF.{{end}}
+                        {{if eq .Message "db_update_error"}}Erreur lors de la mise à jour de l'image dans la base de données.{{end}}
                     </div>
                     {{end}}
                     
@@ -127,16 +131,33 @@
     </div>
 
     <script>
-        document.getElementById('profile_image').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.querySelector('.profile-avatar img').src = e.target.result;
-                    document.querySelector('.submit-btn').style.display = 'block';
+        // Afficher le bouton de téléchargement seulement quand un fichier est sélectionné
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputElement = document.getElementById('profile_image');
+            const uploadButton = document.getElementById('upload-btn');
+            const previewImage = document.getElementById('profile-preview');
+            
+            // Cacher le bouton de téléchargement au chargement
+            uploadButton.style.display = 'none';
+            
+            inputElement.addEventListener('change', function(e) {
+                const file = this.files[0];
+                
+                if (file) {
+                    // Afficher le bouton de téléchargement
+                    uploadButton.style.display = 'block';
+                    
+                    // Afficher un aperçu de l'image
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        previewImage.src = e.target.result;
+                    }
+                    reader.readAsDataURL(file);
+                } else {
+                    // Cacher le bouton si aucun fichier n'est sélectionné
+                    uploadButton.style.display = 'none';
                 }
-                reader.readAsDataURL(file);
-            }
+            });
         });
     </script>
 </body>

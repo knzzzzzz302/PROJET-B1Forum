@@ -62,6 +62,8 @@ func EditUserProfile(database *sql.DB, username string, newUsername string, emai
     if err != nil {
         return false
     }
+    defer statement.Close()
+    
     _, err = statement.Exec(newUsername, email, username)
     if err != nil {
         return false
@@ -72,6 +74,8 @@ func EditUserProfile(database *sql.DB, username string, newUsername string, emai
     if err != nil {
         return false
     }
+    defer statementPosts.Close()
+    
     _, err = statementPosts.Exec(newUsername, username)
     if err != nil {
         return false
@@ -82,6 +86,8 @@ func EditUserProfile(database *sql.DB, username string, newUsername string, emai
     if err != nil {
         return false
     }
+    defer statementComments.Close()
+    
     _, err = statementComments.Exec(newUsername, username)
     if err != nil {
         return false
@@ -92,6 +98,8 @@ func EditUserProfile(database *sql.DB, username string, newUsername string, emai
     if err != nil {
         return false
     }
+    defer statementVotes.Close()
+    
     _, err = statementVotes.Exec(newUsername, username)
     if err != nil {
         return false
@@ -125,6 +133,8 @@ func ChangePassword(database *sql.DB, username string, currentPassword string, n
     if err != nil {
         return false
     }
+    defer statement.Close()
+    
     _, err = statement.Exec(hashedPassword, username)
     if err != nil {
         return false
@@ -147,10 +157,29 @@ func GetProfileImage(database *sql.DB, username string) string {
 func UpdateProfileImage(database *sql.DB, username string, imagePath string) bool {
     statement, err := database.Prepare("UPDATE users SET profile_image = ? WHERE username = ?")
     if err != nil {
+        fmt.Println("Erreur préparation SQL:", err)
         return false
     }
-    _, err = statement.Exec(imagePath, username)
-    return err == nil
+    defer statement.Close()
+    
+    result, err := statement.Exec(imagePath, username)
+    if err != nil {
+        fmt.Println("Erreur exécution SQL:", err)
+        return false
+    }
+    
+    affected, err := result.RowsAffected()
+    if err != nil {
+        fmt.Println("Erreur vérification lignes affectées:", err)
+        return false
+    }
+    
+    if affected == 0 {
+        fmt.Println("Aucune ligne modifiée - utilisateur introuvable:", username)
+        return false
+    }
+    
+    return true
 }
 
 // GetUserStats récupère les statistiques d'un utilisateur
