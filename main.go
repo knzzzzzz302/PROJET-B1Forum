@@ -4,34 +4,13 @@ import (
 	"FORUM-GO/databaseAPI"
 	"FORUM-GO/webAPI"
 	"database/sql"
+	"flag"
 	"fmt"
 	_ "github.com/mattn/go-sqlite3"
+	"log"
 	"net/http"
 	"os"
 )
-
-type Post struct {
-	Id         int
-	Username   string
-	Title      string
-	Categories []string
-	Content    string
-	CreatedAt  string
-	UpVotes    int
-	DownVotes  int
-	Comments   []Comment
-}
-
-type Comment struct {
-	Id        int
-	PostId    int
-	Username  string
-	Content   string
-	CreatedAt string
-}
-
-// Database
-var database *sql.DB
 
 func main() {
 	// check if DB exists
@@ -46,8 +25,9 @@ func main() {
 		defer file.Close()
 	}
 
-	database, _ = sql.Open("sqlite3", "./database.db")
+	database, _ := sql.Open("sqlite3", "./database.db")
 
+	// Initialisation de la base de données
 	databaseAPI.CreateUsersTable(database)
 	databaseAPI.AddProfileImageColumnIfNotExists(database)
 	databaseAPI.CreatePostTable(database)
@@ -66,8 +46,8 @@ func main() {
 
 	fs := http.FileServer(http.Dir("public"))
 	router := http.NewServeMux()
-	fmt.Println("Starting server on port http://localhost:3030/")
 
+	// Configuration des routes
 	router.HandleFunc("/", webAPI.Index)
 	router.HandleFunc("/register", webAPI.Register)
 	router.HandleFunc("/login", webAPI.Login)
@@ -91,6 +71,24 @@ func main() {
 	router.HandleFunc("/api/editpost", webAPI.EditPostHandler)
 	router.HandleFunc("/api/deletecomment", webAPI.DeleteCommentHandler)
 	router.HandleFunc("/api/commentlike", webAPI.CommentLikeApi)
+	router.HandleFunc("/auth/google/login", webAPI.GoogleLogin)
+	router.HandleFunc("/auth/google/callback", webAPI.GoogleCallback)
 
-	http.ListenAndServe(":3030", router)
+
+	// Flags pour configurer le mode HTTP/HTTPS
+	var useHTTPS = flag.Bool("https", false, "Démarrer le serveur en mode HTTPS")
+	var port = flag.String("port", "3030", "Port d'écoute du serveur")
+	var certFile = flag.String("cert", "certs/cert.pem", "Chemin vers le fichier de certificat SSL")
+	var keyFile = flag.String("key", "certs/key.pem", "Chemin vers le fichier de clé privée SSL")
+	flag.Parse()
+
+	addr := ":" + *port
+
+	if *useHTTPS {
+		fmt.Printf("Démarrage du serveur HTTPS sur https://localhost%s/\n", addr)
+		log.Fatal(http.ListenAndServeTLS(addr, *certFile, *keyFile, router))
+	} else {
+		fmt.Printf("Démarrage du serveur HTTP sur http://localhost%s/\n", addr)
+		log.Fatal(http.ListenAndServe(addr, router))
+	}
 }
