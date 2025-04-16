@@ -75,7 +75,7 @@ func main() {
 	router.HandleFunc("/auth/google/callback", webAPI.GoogleCallback)
 	router.HandleFunc("/auth/github/login", webAPI.GitHubLogin)
 	router.HandleFunc("/auth/github/callback", webAPI.GitHubCallback)
-
+	router.HandleFunc
 
 	// Flags pour configurer le mode HTTP/HTTPS
 	var useHTTPS = flag.Bool("https", false, "Démarrer le serveur en mode HTTPS")

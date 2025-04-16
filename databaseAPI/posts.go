@@ -2,6 +2,7 @@ package databaseAPI
 
 import (
 	"database/sql"
+	"fmt"
 	_ "github.com/mattn/go-sqlite3"
 	"strconv"
 	"strings"
@@ -280,3 +281,110 @@ func IsCommentOwner(database *sql.DB, username string, commentId int) bool {
 	return count > 0
 }
 
+// --- NOUVELLES FONCTIONS DE FILTRAGE ---
+
+// GetPostsByDate récupère tous les posts triés par date
+func GetPostsByDate(database *sql.DB, ascending bool) []Post {
+	orderDirection := "DESC" // Plus récent par défaut
+	if ascending {
+		orderDirection = "ASC" // Plus ancien
+	}
+	
+	query := fmt.Sprintf("SELECT id, username, title, categories, content, created_at, upvotes, downvotes FROM posts ORDER BY created_at %s", orderDirection)
+	rows, _ := database.Query(query)
+	var posts []Post
+	for rows.Next() {
+		var post Post
+		var catString string
+		rows.Scan(&post.Id, &post.Username, &post.Title, &catString, &post.Content, &post.CreatedAt, &post.UpVotes, &post.DownVotes)
+		post.Categories = strings.Split(catString, ",")
+		post.Images = GetPostImages(database, post.Id)
+		posts = append(posts, post)
+	}
+	return posts
+}
+
+// GetPostsByPopularity récupère tous les posts triés par popularité (upvotes - downvotes)
+func GetPostsByPopularity(database *sql.DB) []Post {
+	rows, _ := database.Query("SELECT id, username, title, categories, content, created_at, upvotes, downvotes FROM posts ORDER BY (upvotes - downvotes) DESC")
+	var posts []Post
+	for rows.Next() {
+		var post Post
+		var catString string
+		rows.Scan(&post.Id, &post.Username, &post.Title, &catString, &post.Content, &post.CreatedAt, &post.UpVotes, &post.DownVotes)
+		post.Categories = strings.Split(catString, ",")
+		post.Images = GetPostImages(database, post.Id)
+		posts = append(posts, post)
+	}
+	return posts
+}
+
+// GetPostsByKeyword recherche des posts par mot-clé dans le titre ou le contenu
+func GetPostsByKeyword(database *sql.DB, keyword string) []Post {
+	rows, _ := database.Query("SELECT id, username, title, categories, content, created_at, upvotes, downvotes FROM posts WHERE title LIKE ? OR content LIKE ?", 
+		"%"+keyword+"%", "%"+keyword+"%")
+	var posts []Post
+	for rows.Next() {
+		var post Post
+		var catString string
+		rows.Scan(&post.Id, &post.Username, &post.Title, &catString, &post.Content, &post.CreatedAt, &post.UpVotes, &post.DownVotes)
+		post.Categories = strings.Split(catString, ",")
+		post.Images = GetPostImages(database, post.Id)
+		posts = append(posts, post)
+	}
+	return posts
+}
+
+// GetAdvancedFilteredPosts permet de combiner plusieurs filtres
+func GetAdvancedFilteredPosts(database *sql.DB, category string, keyword string, sortBy string, username string, onlyLiked bool) []Post {
+	query := "SELECT id, username, title, categories, content, created_at, upvotes, downvotes FROM posts WHERE 1=1"
+	var args []interface{}
+	
+	// Filtre par catégorie
+	if category != "" {
+		query += " AND categories LIKE ?"
+		args = append(args, "%"+category+"%")
+	}
+	
+	// Filtre par mot-clé
+	if keyword != "" {
+		query += " AND (title LIKE ? OR content LIKE ?)"
+		args = append(args, "%"+keyword+"%", "%"+keyword+"%")
+	}
+	
+	// Filtre par utilisateur
+	if username != "" {
+		query += " AND username = ?"
+		args = append(args, username)
+	}
+	
+	// Filtre par posts aimés
+	if onlyLiked {
+		query += " AND id IN (SELECT post_id FROM votes WHERE username = ? AND vote = 1)"
+		args = append(args, username)
+	}
+	
+	// Tri
+	switch sortBy {
+	case "date_asc":
+		query += " ORDER BY created_at ASC"
+	case "date_desc":
+		query += " ORDER BY created_at DESC"
+	case "popularity":
+		query += " ORDER BY (upvotes - downvotes) DESC"
+	default:
+		query += " ORDER BY created_at DESC" // Par défaut: plus récent d'abord
+	}
+	
+	rows, _ := database.Query(query, args...)
+	var posts []Post
+	for rows.Next() {
+		var post Post
+		var catString string
+		rows.Scan(&post.Id, &post.Username, &post.Title, &catString, &post.Content, &post.CreatedAt, &post.UpVotes, &post.DownVotes)
+		post.Categories = strings.Split(catString, ",")
+		post.Images = GetPostImages(database, post.Id)
+		posts = append(posts, post)
+	}
+	return posts
+}

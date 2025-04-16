@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recherche avancée - Forum Sekkay</title>
+    <link rel="stylesheet" href="public/CSS/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+    <header>
+        {{if .User.IsLoggedIn}}
+        <div class="header">
+            <a href="/" class="logo"><i class="fa fa-solid fa-fire"></i>SEKKAY</a>
+            <div class="header-right">
+                <a href="/">Accueil</a>
+                <a href="/filter?by=liked">Publications aimées</a>
+                <a href="/filter?by=myposts">Mes publications</a>
+                <a href="/newpost">Nouvelle publication</a>
+                <a href="/api/logout">Déconnexion</a>
+                <a href="/profile">Profil</a> 
+                <a href="/search" class="active">Recherche</a>
+            </div>
+        </div>
+        {{else}}
+        <div class="header">
+            <a href="/" class="logo"><i class="fa fa-solid fa-fire"></i>SEKKAY</a>
+            <div class="header-right">
+                <a href="/">Accueil</a>
+                <a href="/login">Connexion</a>
+                <a href="/register">Inscription</a>
+                <a href="/search" class="active">Recherche</a>
+            </div>
+        </div>
+        {{end}}
+    </header>
+
+    <div class="main-content">
+        <div class="container">
+            <div class="subforum-title">
+                <h1>Recherche Avancée</h1>
+            </div>
+            
+            <div class="search-form" style="background-color: rgba(26, 26, 26, 0.8); padding: 20px; border-radius: 10px;">
+                <form action="/filter" method="GET">
+                    <input type="hidden" name="by" value="advanced">
+                    
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label for="keyword" style="display: block; margin-bottom: 5px; color: #FF6B00;">Mot-clé:</label>
+                        <input type="text" id="keyword" name="keyword" style="width: 100%; padding: 10px; background-color: #333; color: white; border: 1px solid #FF6B00; border-radius: 5px;">
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label for="category" style="display: block; margin-bottom: 5px; color: #FF6B00;">Catégorie:</label>
+                        <select id="category" name="category" style="width: 100%; padding: 10px; background-color: #333; color: white; border: 1px solid #FF6B00; border-radius: 5px;">
+                            <option value="">Toutes les catégories</option>
+                            {{range .Categories}}
+                            <option value="{{.}}">{{.}}</option>
+                            {{end}}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label for="sort" style="display: block; margin-bottom: 5px; color: #FF6B00;">Trier par:</label>
+                        <select id="sort" name="sort" style="width: 100%; padding: 10px; background-color: #333; color: white; border: 1px solid #FF6B00; border-radius: 5px;">
+                            <option value="date_desc">Plus récent d'abord</option>
+                            <option value="date_asc">Plus ancien d'abord</option>
+                            <option value="popularity">Popularité</option>
+                        </select>
+                    </div>
+                    
+                    {{if .User.IsLoggedIn}}
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="color: #FF6B00;">Filtres supplémentaires:</label>
+                        <div style="margin-top: 8px;">
+                            <input type="checkbox" id="mine" name="mine" value="true">
+                            <label for="mine" style="color: white; margin-right: 15px;">Mes publications uniquement</label>
+                            
+                            <input type="checkbox" id="liked" name="liked" value="true">
+                            <label for="liked" style="color: white;">Publications aimées uniquement</label>
+                        </div>
+                    </div>
+                    {{end}}
+                    
+                    <button type="submit" style="background-color: #FF6B00; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Rechercher</button>
+                </form>
+            </div>
+            
+            <div class="quick-filters" style="margin-top: 30px; background-color: rgba(26, 26, 26, 0.8); padding: 20px; border-radius: 10px;">
+                <h2 style="color: #FF6B00; margin-bottom: 15px;">Filtres rapides</h2>
+                <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                    <a href="/filter?by=recent" style="background-color: #444; color: white; padding: 10px 15px; border-radius: 5px; text-decoration: none; display: inline-block;">
+                        <i class="fa fa-clock-o"></i> Plus récent
+                    </a>
+                    <a href="/filter?by=oldest" style="background-color: #444; color: white; padding: 10px 15px; border-radius: 5px; text-decoration: none; display: inline-block;">
+                        <i class="fa fa-history"></i> Plus ancien
+                    </a>
+                    <a href="/filter?by=popular" style="background-color: #444; color: white; padding: 10px 15px; border-radius: 5px; text-decoration: none; display: inline-block;">
+                        <i class="fa fa-star"></i> Populaires
+                    </a>
+                    {{if .User.IsLoggedIn}}
+                    <a href="/filter?by=myposts" style="background-color: #444; color: white; padding: 10px 15px; border-radius: 5px; text-decoration: none; display: inline-block;">
+                        <i class="fa fa-user"></i> Mes publications
+                    </a>
+                    <a href="/filter?by=liked" style="background-color: #444; color: white; padding: 10px 15px; border-radius: 5px; text-decoration: none; display: inline-block;">
+                        <i class="fa fa-heart"></i> Publications aimées
+                    </a>
+                    {{end}}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-container">
+            <div class="footer-row">
+                <div class="footer-column">
+                    <h1>FORUM SEKKAY &copy;</h1>
+                    <p>
+                        Merci d'utiliser notre forum. Nous espérons que vous passerez un excellent moment !
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

@@ -199,9 +199,22 @@ func DisplayPost(w http.ResponseWriter, r *http.Request) {
 	t.ExecuteTemplate(w, "detail.html", payload)
 }
 
-// GetPostsByApi gets all post filtered by the given parameters
+
 func GetPostsByApi(w http.ResponseWriter, r *http.Request) {
 	method := r.URL.Query().Get("by")
+	
+	// Variables pour stocker les informations de l'utilisateur
+	var username string
+	var isLoggedIn bool
+	
+	// Vérifier si l'utilisateur est connecté
+	if checkUserLoggedIn(r) {
+		cookie, _ := r.Cookie("SESSION")
+		username = databaseAPI.GetUser(database, cookie.Value)
+		isLoggedIn = true
+	}
+	
+	// Filtrage par catégorie
 	if method == "category" {
 		category := r.URL.Query().Get("category")
 		posts := databaseAPI.GetPostsByCategory(database, category)
@@ -210,20 +223,20 @@ func GetPostsByApi(w http.ResponseWriter, r *http.Request) {
 			Posts: posts,
 			Icon:  databaseAPI.GetCategoryIcon(database, category),
 		}
-		if checkUserLoggedIn(r) {
-			payload.User = User{IsLoggedIn: true}
+		if isLoggedIn {
+			payload.User = User{IsLoggedIn: true, Username: username}
 		}
 		t, _ := template.ParseGlob("public/HTML/*.html")
 		t.ExecuteTemplate(w, "posts.html", payload)
 		return
 	}
+	
+	// Filtrage par publications de l'utilisateur
 	if method == "myposts" {
-		if checkUserLoggedIn(r) {
-			cookie, _ := r.Cookie("SESSION")
-			username := databaseAPI.GetUser(database, cookie.Value)
+		if isLoggedIn {
 			posts := databaseAPI.GetPostsByUser(database, username)
 			payload := PostsPage{
-				User:  User{IsLoggedIn: true},
+				User:  User{IsLoggedIn: true, Username: username},
 				Title: "My posts",
 				Posts: posts,
 				Icon:  "fa-user",
@@ -235,25 +248,8 @@ func GetPostsByApi(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
-	if method == "liked" {
-		if checkUserLoggedIn(r) {
-			cookie, _ := r.Cookie("SESSION")
-			username := databaseAPI.GetUser(database, cookie.Value)
-			posts := databaseAPI.GetLikedPosts(database, username)
-			payload := PostsPage{
-				User:  User{IsLoggedIn: true},
-				Title: "Posts liked by me",
-				Posts: posts,
-				Icon:  "fa-heart",
-			}
-			t, _ := template.ParseGlob("public/HTML/*.html")
-			t.ExecuteTemplate(w, "posts.html", payload)
-			return
-		}
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	
+	// Filt
 }
 
 // NewPost displays the NewPost page
