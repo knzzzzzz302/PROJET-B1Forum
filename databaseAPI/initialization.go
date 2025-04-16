@@ -61,6 +61,12 @@ func CreateCommentDislikesTable(database *sql.DB) {
     statement.Exec()
 }
 
+// CreatePostImagesTable crée la table des images de posts
+func CreatePostImagesTable(database *sql.DB) {
+    statement, _ := database.Prepare("CREATE TABLE IF NOT EXISTS post_images (id INTEGER PRIMARY KEY AUTOINCREMENT, post_id INTEGER, image_path TEXT, FOREIGN KEY (post_id) REFERENCES posts(id))")
+    statement.Exec()
+}
+
 // CreateCategories creates categories in the database
 func CreateCategories(database *sql.DB) {
     statement, _ := database.Prepare("INSERT INTO categories (name) SELECT ? WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = ?)")
