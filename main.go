@@ -40,6 +40,7 @@ func main() {
 	databaseAPI.CreateCommentDislikesTable(database)
 	databaseAPI.CreatePostImagesTable(database)
 	databaseAPI.AddProfileImageColumnIfNotExists(database)
+	databaseAPI.AddMFASecretColumn(database)
 	
 	// Créer le dossier pour stocker les images des profils
 	os.MkdirAll("public/uploads/profiles", os.ModePerm)
@@ -78,7 +79,12 @@ func main() {
 	router.HandleFunc("/auth/github/login", webAPI.GitHubLogin)
 	router.HandleFunc("/auth/github/callback", webAPI.GitHubCallback)
 	router.HandleFunc("/search", webAPI.AdvancedSearch)
-
+	router.HandleFunc("/mfa/setup", webAPI.MFASetup)
+    router.HandleFunc("/mfa/disable", webAPI.MFADisable)
+    router.HandleFunc("/mfa/verify", webAPI.MFAVerify)
+    router.HandleFunc("/mfa/validate", webAPI.MFAValidate)
+	router.HandleFunc("/mfa/setup/verify", webAPI.MFAVerifySetup)  // Cette route est nouvelle
+	
 	// Flags pour configurer le mode HTTP/HTTPS
 	var useHTTPS = flag.Bool("https", false, "Démarrer le serveur en mode HTTPS")
 	var port = flag.String("port", "3030", "Port d'écoute du serveur")

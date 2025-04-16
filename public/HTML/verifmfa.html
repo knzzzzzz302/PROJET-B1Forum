@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Vérification MFA - Forum Sekkay</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kdam+Thmor+Pro&family=Varela+Round&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="public/CSS/loginpage.css">
+    <style>
+        .code-input {
+            letter-spacing: 4px;
+            font-size: 24px;
+            text-align: center;
+        }
+        
+        .error-message {
+            color: #ff6b00;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="item-container">
+        <h2 class="log-in">VÉRIFICATION MFA</h2>
+    </div>
+    
+    <div class="item-container">
+        <p>Entrez le code depuis votre application d'authentification</p>
+    </div>
+    
+    {{if .Error}}
+    <div class="item-container">
+        <p class="error-message">{{.Error}}</p>
+    </div>
+    {{end}}
+    
+    <form action="/mfa/validate" method="post">
+        <input type="hidden" name="username" value="{{.Username}}">
+        <input type="hidden" name="tempToken" value="{{.TempToken}}">
+        
+        <div class="form-input">
+            <label class="label">Code à 6 chiffres</label>
+            <input type="text" name="code" class="code-input" placeholder="000000" maxlength="6" pattern="[0-9]{6}" required autofocus>
+        </div>
+        
+        <div class="button">
+            <button type="submit">Vérifier</button>
+        </div>
+    </form>
+</div>
+</body>
+</html>

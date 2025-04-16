@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -110,6 +111,36 @@
                         <button type="submit" class="edit-btn">Changer le mot de passe</button>
                     </form>
                 </div>
+<!-- Ajoutez cette section dans public/HTML/profile.html juste avant la section des activités récentes -->
+
+<div class="info-section">
+    <h2>Sécurité du compte</h2>
+    
+    {{if .MFAEnabled}}
+    <div style="background-color: rgba(0, 255, 0, 0.1); border: 1px solid #00cc00; border-radius: 5px; padding: 15px; margin-bottom: 15px;">
+        <p><i class="fa fa-shield"></i> <strong>L'authentification à deux facteurs est activée</strong> sur votre compte.</p>
+        <p>Cette protection supplémentaire renforce la sécurité de votre compte.</p>
+    </div>
+    {{else}}
+    <div style="background-color: rgba(255, 107, 0, 0.1); border: 1px solid #FF6B00; border-radius: 5px; padding: 15px; margin-bottom: 15px;">
+        <p><i class="fa fa-exclamation-triangle"></i> <strong>L'authentification à deux facteurs n'est pas activée</strong> sur votre compte.</p>
+        <p>Nous vous recommandons de l'activer pour renforcer la sécurité de votre compte.</p>
+    </div>
+    {{end}}
+    
+    <a href="/mfa/setup" class="edit-btn">
+        {{if .MFAEnabled}}
+        Gérer l'authentification à deux facteurs
+        {{else}}
+        Activer l'authentification à deux facteurs
+        {{end}}
+    </a>
+</div>
+
+
+
+
+
 
                 <div class="info-section">
                     <h2>Activité récente</h2>

@@ -46,6 +46,9 @@ func RegisterApi(w http.ResponseWriter, r *http.Request) {
 }
 
 //LoginApi handles the Login api
+// Modifiez la fonction LoginApi dans webAPI/auth.go comme suit:
+
+// LoginApi handles the Login api
 func LoginApi(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		fmt.Fprintf(w, "ParseForm() err: %v", err)
@@ -66,6 +69,13 @@ func LoginApi(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login?err=invalid_password", http.StatusFound)
 		return
 	}
+	
+	// Vérifier si MFA est activé et gérer la redirection si nécessaire
+	if MFALoginCheck(w, r, username, email) {
+		return // Si MFA est activé, la redirection a déjà été effectuée
+	}
+	
+	// Si MFA n'est pas activé ou pas configuré, procéder à la connexion normale
 	expiration := time.Now().Add(31 * 24 * time.Hour)
 	value := uuid.NewV4().String()
 	cookie := http.Cookie{Name: "SESSION", Value: value, Expires: expiration, Path: "/"}
@@ -76,7 +86,6 @@ func LoginApi(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusFound)
 	return
 }
-
 // LogoutAPI deletes the session cookie from the database
 func LogoutAPI(w http.ResponseWriter, r *http.Request) {
 	cookie, _ := r.Cookie("SESSION")

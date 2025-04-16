@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration MFA - SEKKAY</title>
+    <link rel="stylesheet" href="/public/CSS/style.css">
+    <link rel="stylesheet" href="/public/CSS/profile.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        .mfa-container {
+            max-width: 600px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #1E1E1E;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .qr-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .secret-container {
+            background-color: #121212;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            text-align: center;
+            margin: 20px 0;
+            letter-spacing: 2px;
+            color: white;
+        }
+        
+        .verification-form {
+            margin-top: 20px;
+        }
+        
+        .verification-form input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            background-color: #333;
+            border: 1px solid #555;
+            border-radius: 5px;
+            color: white;
+            font-size: 16px;
+            text-align: center;
+            letter-spacing: 4px;
+            margin-bottom: 15px;
+        }
+        
+        .submit-btn {
+            background-color: #FF6B00;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+        }
+        
+        .disable-btn {
+            background-color: #ff3333;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .info-box {
+            background-color: rgba(255, 107, 0, 0.1);
+            border: 1px solid #FF6B00;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .error-box {
+            background-color: rgba(255, 0, 0, 0.1);
+            border: 1px solid #ff3333;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #ff3333;
+        }
+        
+        .success-box {
+            background-color: rgba(0, 255, 0, 0.1);
+            border: 1px solid #00cc00;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #00cc00;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header">
+            <a href="/" class="logo"><i class="fa fa-solid fa-fire"></i>SEKKAY</a>
+            <div class="header-right">
+                <a href="/">Accueil</a>
+                <a href="/filter?by=liked">Publications aimées</a>
+                <a href="/filter?by=myposts">Mes publications</a>
+                <a href="/newpost">Nouvelle publication</a>
+                <a href="/profile">Profil</a>
+                <a href="/api/logout">Déconnexion</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="mfa-container">
+        <h1 style="color: #FF6B00; text-align: center;">Authentification à deux facteurs</h1>
+        
+        {{if .Error}}
+        <div class="error-box">
+            <i class="fa fa-exclamation-circle"></i> {{.Error}}
+        </div>
+        {{end}}
+        
+        {{if .Success}}
+        <div class="success-box">
+            <i class="fa fa-check-circle"></i> {{.Success}}
+        </div>
+        {{end}}
+        
+        {{if .MFAEnabled}}
+            <div class="info-box">
+                <h3><i class="fa fa-shield"></i> MFA est actuellement activé</h3>
+                <p>L'authentification à deux facteurs est activée pour votre compte. Cette protection supplémentaire assure que seule une personne ayant accès à votre téléphone puisse se connecter à votre compte.</p>
+            </div>
+            
+            <form action="/mfa/disable" method="post">
+                <button type="submit" class="disable-btn">Désactiver l'authentification à deux facteurs</button>
+            </form>
+        {{else}}
+            <div class="info-box">
+                <h3>Configurer l'authentification à deux facteurs</h3>
+                <p>Suivez ces étapes pour renforcer la sécurité de votre compte :</p>
+                <ol>
+                    <li>Téléchargez une application d'authentification comme Google Authenticator ou Authy sur votre téléphone</li>
+                    <li>Entrez le code à 6 chiffres fourni par l'application pour vérifier la configuration</li>
+                </ol>
+            </div>
+            
+            {{if .QRCodeURL}}
+            <div class="qr-container">
+                <img src="{{.QRCodeURL}}" alt="QR Code pour MFA" style="width: 200px; height: 200px;">
+            </div>
+            
+            <p style="text-align: center;">Ou entrez ce code manuellement dans votre application :</p>
+            <div class="secret-container">{{.Secret}}</div>
+            
+            <form class="verification-form" action="/mfa/setup/verify" method="post">
+                <input type="hidden" name="secret" value="{{.Secret}}">
+                <input type="text" name="code" placeholder="Code à 6 chiffres" maxlength="6" pattern="[0-9]{6}" required>
+                <button type="submit" class="submit-btn">Activer l'authentification à deux facteurs</button>
+            </form>
+            {{else}}
+            <p style="text-align: center;">
+                <a href="/mfa/setup" style="display: inline-block; background-color: #FF6B00; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none;">Générer le QR code</a>
+            </p>
+            {{end}}
+        {{end}}
+        
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="/profile" style="color: #FF6B00;">Retour au profil</a>
+        </div>
+    </div>
+</body>
+</html>

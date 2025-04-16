@@ -21,6 +21,7 @@ type HomePage struct {
 	Categories        []string
 	Icons             []string
 	PostsByCategories [][]databaseAPI.Post
+	MFAEnabled        bool  // Champ pour l'état de l'A2F
 }
 
 type PostsPage struct {
@@ -54,11 +55,17 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	}
 	if checkUserLoggedIn(r) {
 		cookie, _ := r.Cookie("SESSION")
+		username := databaseAPI.GetUser(database, cookie.Value)
+		
+		// Vérifier si l'A2F est activée pour cet utilisateur
+		mfaEnabled, _ := databaseAPI.IsMFAEnabled(database, username)
+		
 		payload := HomePage{
-			User:              User{IsLoggedIn: true, Username: databaseAPI.GetUser(database, cookie.Value)},
+			User:              User{IsLoggedIn: true, Username: username},
 			Categories:        databaseAPI.GetCategories(database),
 			Icons:             databaseAPI.GetCategoriesIcons(database),
 			PostsByCategories: databaseAPI.GetPostsByCategories(database),
+			MFAEnabled:        mfaEnabled,  // Indique si MFA est activé
 		}
 		t, _ := template.ParseGlob("public/HTML/*.html")
 		t.ExecuteTemplate(w, "forum.html", payload)
@@ -69,6 +76,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		Categories:        databaseAPI.GetCategories(database),
 		Icons:             databaseAPI.GetCategoriesIcons(database),
 		PostsByCategories: databaseAPI.GetPostsByCategories(database),
+		MFAEnabled:        false,  // Par défaut, MFA n'est pas activé
 	}
 	t, _ := template.ParseGlob("public/HTML/*.html")
 	t.ExecuteTemplate(w, "forum.html", payload)
@@ -88,7 +96,6 @@ func DisplayPost(w http.ResponseWriter, r *http.Request) {
 	// Information sur l'utilisateur actuel
 	var isUserLoggedIn bool
 	var username string
-	
 	if checkUserLoggedIn(r) {
 		cookie, _ := r.Cookie("SESSION")
 		username = databaseAPI.GetUser(database, cookie.Value)

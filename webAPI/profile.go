@@ -13,6 +13,9 @@ import (
 )
 
 // Structure pour la page de profil
+// Modifiez la structure ProfilePage et la fonction DisplayProfile dans webAPI/profile.go
+
+// Structure pour la page de profil
 type ProfilePage struct {
     User          User
     Username      string
@@ -23,6 +26,7 @@ type ProfilePage struct {
     LikesReceived int
     RecentPosts   []databaseAPI.Post
     Message       string
+    MFAEnabled    bool  // Ajout de ce champ
 }
 
 // DisplayProfile affiche la page de profil de l'utilisateur
@@ -43,6 +47,9 @@ func DisplayProfile(w http.ResponseWriter, r *http.Request) {
     
     message := r.URL.Query().Get("msg")
     
+    // Vérifier si MFA est activé
+    mfaEnabled, _ := databaseAPI.IsMFAEnabled(database, username)
+    
     payload := ProfilePage{
         User:          User{IsLoggedIn: true, Username: username},
         Username:      username,
@@ -53,6 +60,7 @@ func DisplayProfile(w http.ResponseWriter, r *http.Request) {
         LikesReceived: likesReceived,
         RecentPosts:   recentPosts,
         Message:       message,
+        MFAEnabled:    mfaEnabled,  // Ajout de cette ligne
     }
     
     t, err := template.ParseFiles("public/HTML/profile.html")
@@ -66,7 +74,6 @@ func DisplayProfile(w http.ResponseWriter, r *http.Request) {
         http.Error(w, "Erreur lors de l'affichage de la page: "+err.Error(), http.StatusInternalServerError)
     }
 }
-
 // EditProfileHandler traite les requêtes d'édition de profil
 func EditProfileHandler(w http.ResponseWriter, r *http.Request) {
     if r.Method != "POST" {

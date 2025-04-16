@@ -6,8 +6,17 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-// AddMFAColumnIfNotExists ajoute la colonne mfa_secret à la table users si elle n'existe pas
-
+func AddMFASecretColumn(database *sql.DB) {
+    // Vérifier si la colonne existe déjà
+    var count int
+    err := database.QueryRow("SELECT COUNT(*) FROM pragma_table_info('users') WHERE name='mfa_secret'").Scan(&count)
+    if err != nil || count == 0 {
+        // La colonne n'existe pas, l'ajouter
+        statement, _ := database.Prepare("ALTER TABLE users ADD COLUMN mfa_secret TEXT DEFAULT ''")
+        statement.Exec()
+        fmt.Println("Colonne mfa_secret ajoutée à la table users")
+    }
+}
 
 // CreateUsersTable creates the users table
 func CreateUsersTable(database *sql.DB) {
