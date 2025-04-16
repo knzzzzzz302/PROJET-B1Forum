@@ -219,7 +219,7 @@ func GetPostsByApi(w http.ResponseWriter, r *http.Request) {
 		category := r.URL.Query().Get("category")
 		posts := databaseAPI.GetPostsByCategory(database, category)
 		payload := PostsPage{
-			Title: "Posts in category " + category,
+			Title: "Publications dans la catégorie " + category,
 			Posts: posts,
 			Icon:  databaseAPI.GetCategoryIcon(database, category),
 		}
@@ -237,7 +237,7 @@ func GetPostsByApi(w http.ResponseWriter, r *http.Request) {
 			posts := databaseAPI.GetPostsByUser(database, username)
 			payload := PostsPage{
 				User:  User{IsLoggedIn: true, Username: username},
-				Title: "My posts",
+				Title: "Mes publications",
 				Posts: posts,
 				Icon:  "fa-user",
 			}
@@ -249,9 +249,64 @@ func GetPostsByApi(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
-	// Filt
+	// Filtrage par publications aimées
+	if method == "liked" {
+		if isLoggedIn {
+			posts := databaseAPI.GetLikedPosts(database, username)
+			payload := PostsPage{
+				User:  User{IsLoggedIn: true, Username: username},
+				Title: "Publications aimées",
+				Posts: posts,
+				Icon:  "fa-heart",
+			}
+			t, _ := template.ParseGlob("public/HTML/*.html")
+			t.ExecuteTemplate(w, "posts.html", payload)
+			return
+		}
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+	
+	// Filtrage avancé
+	if method == "advanced" {
+		if !isLoggedIn {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		}
+		
+		// Récupérer les paramètres de filtrage
+		keyword := r.URL.Query().Get("keyword")
+		category := r.URL.Query().Get("category")
+		sortBy := r.URL.Query().Get("sort")
+		onlyMine := r.URL.Query().Get("mine") == "true"
+		onlyLiked := r.URL.Query().Get("liked") == "true"
+		
+		// Utiliser la fonction de filtrage avancé
+		posts := databaseAPI.GetAdvancedFilteredPosts(
+			database, 
+			category, 
+			keyword, 
+			sortBy, 
+			username, 
+			onlyMine, 
+			onlyLiked,
+		)
+		
+		payload := PostsPage{
+			User:  User{IsLoggedIn: true, Username: username},
+			Title: "Résultats de recherche",
+			Posts: posts,
+			Icon:  "fa-search",
+		}
+		
+		t, _ := template.ParseGlob("public/HTML/*.html")
+		t.ExecuteTemplate(w, "posts.html", payload)
+		return
+	}
+	
+	// Méthode de filtrage non reconnue
+	http.Error(w, "Méthode de filtrage non reconnue", http.StatusBadRequest)
 }
-
 // NewPost displays the NewPost page
 func NewPost(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {

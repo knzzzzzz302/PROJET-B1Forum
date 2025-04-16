@@ -2,12 +2,14 @@
 <div class="header">
   <a href="/" class="logo"><i class="fa fa-solid fa-comments"></i>Forum</a>
   <div class="header-right">
-    <a class="active" href="/">accueuil</a>
-    <a href="/filter?by=liked">poste likes</a>
-    <a href="/filter?by=myposts">Mes postes</a>
-    <a href="/newpost">Nouveau post</a>
+    <a class="active" href="/">Accueuil</a>
+    <a href="/search">Recherche </a> 
+    <a href="/filter?by=liked">Publications likes</a>
+    <a href="/filter?by=myposts">Mes Publications</a>
+    <a href="/newpost">Nouvelle publications</a>
     <a href="/api/logout">Se déconnecter</a>
-    <a href="/profile">PROFIL</a>
+    <a href="/profile">Mon Profil</a>
+
     <link rel="icon" type="image/png" href="/public/images/image.png">
 <link rel="shortcut icon" type="image/png" href="/public/images/image.png">
   </div>
@@ -50,9 +52,9 @@
     </div>
     <div class="posts-table">
       <div class="table-head">
-        <div class="status">Filtre</div>
-        <div class="subjects">Titre</div>
-        <div class="last-reply">Creér a</div>
+        <div class="status">Filter</div>
+        <div class="subjects">Title</div>
+        <div class="last-reply">Created</div>
       </div>
       {{ range .Posts }}
       <div class="table-row">

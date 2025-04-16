@@ -336,7 +336,8 @@ func GetPostsByKeyword(database *sql.DB, keyword string) []Post {
 }
 
 // GetAdvancedFilteredPosts permet de combiner plusieurs filtres
-func GetAdvancedFilteredPosts(database *sql.DB, category string, keyword string, sortBy string, username string, onlyLiked bool) []Post {
+// GetAdvancedFilteredPosts permet de combiner plusieurs filtres
+func GetAdvancedFilteredPosts(database *sql.DB, category string, keyword string, sortBy string, username string, onlyMine bool, onlyLiked bool) []Post {
 	query := "SELECT id, username, title, categories, content, created_at, upvotes, downvotes FROM posts WHERE 1=1"
 	var args []interface{}
 	
@@ -352,13 +353,13 @@ func GetAdvancedFilteredPosts(database *sql.DB, category string, keyword string,
 		args = append(args, "%"+keyword+"%", "%"+keyword+"%")
 	}
 	
-	// Filtre par utilisateur
-	if username != "" {
+	// Filtre par publications de l'utilisateur
+	if onlyMine {
 		query += " AND username = ?"
 		args = append(args, username)
 	}
 	
-	// Filtre par posts aimés
+	// Filtre par publications aimées
 	if onlyLiked {
 		query += " AND id IN (SELECT post_id FROM votes WHERE username = ? AND vote = 1)"
 		args = append(args, username)
