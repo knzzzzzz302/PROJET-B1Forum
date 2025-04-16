@@ -73,6 +73,8 @@ func main() {
 	router.HandleFunc("/api/commentlike", webAPI.CommentLikeApi)
 	router.HandleFunc("/auth/google/login", webAPI.GoogleLogin)
 	router.HandleFunc("/auth/google/callback", webAPI.GoogleCallback)
+	router.HandleFunc("/auth/github/login", webAPI.GitHubLogin)
+	router.HandleFunc("/auth/github/callback", webAPI.GitHubCallback)
 
 
 	// Flags pour configurer le mode HTTP/HTTPS

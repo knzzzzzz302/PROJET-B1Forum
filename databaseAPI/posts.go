@@ -279,3 +279,4 @@ func IsCommentOwner(database *sql.DB, username string, commentId int) bool {
 	}
 	return count > 0
 }
+
