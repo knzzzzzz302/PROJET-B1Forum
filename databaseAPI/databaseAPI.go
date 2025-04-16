@@ -5,16 +5,17 @@ import (
 )
 
 type Post struct {
-	Id         int
-	Username   string
-	Title      string
-	Categories []string
-	Content    string
-	CreatedAt  string
-	UpVotes    int
-	DownVotes  int
-	Comments   []Comment
-	Images     []string 
+	Id           int
+	Username     string
+	Title        string
+	Categories   []string
+	Content      string
+	CreatedAt    string
+	UpVotes      int
+	DownVotes    int
+	Comments     []Comment
+	Images       []string 
+	ProfileImage string // Ajout de l'image de profil
 }
 
 type Comment struct {
@@ -27,4 +28,5 @@ type Comment struct {
 	UserLiked    bool
 	Dislikes     int
 	UserDisliked bool
+	ProfileImage string // Ajout de l'image de profil
 }

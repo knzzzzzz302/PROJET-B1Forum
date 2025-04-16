@@ -10,6 +10,7 @@ import (
 )
 
 // GetPost récupère un post par son ID
+// GetPost récupère un post par son ID
 func GetPost(database *sql.DB, id string) Post {
 	rows, _ := database.Query("SELECT username, title, categories, content, created_at, upvotes, downvotes FROM posts WHERE id = ?", id)
 	var post Post
@@ -23,6 +24,9 @@ func GetPost(database *sql.DB, id string) Post {
 	
 	// Récupérer les images du post
 	post.Images = GetPostImages(database, post.Id)
+	
+	// Récupérer l'image de profil de l'auteur
+	post.ProfileImage = GetProfileImage(database, post.Username)
 	
 	return post
 }
@@ -61,12 +65,17 @@ func AddPostImage(database *sql.DB, postId int, imagePath string) error {
 }
 
 // GetComments récupère les commentaires d'un post
+// GetComments récupère les commentaires d'un post
 func GetComments(database *sql.DB, id string) []Comment {
 	rows, _ := database.Query("SELECT id, username, content, created_at FROM comments WHERE post_id = ?", id)
 	var comments []Comment
 	for rows.Next() {
 		var comment Comment
 		rows.Scan(&comment.Id, &comment.Username, &comment.Content, &comment.CreatedAt)
+		
+		// Récupérer l'image de profil de l'auteur du commentaire
+		comment.ProfileImage = GetProfileImage(database, comment.Username)
+		
 		comments = append(comments, comment)
 	}
 	return comments

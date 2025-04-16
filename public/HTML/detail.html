@@ -9,6 +9,30 @@
     <link rel="stylesheet" href="public/CSS/comment-likes.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <style>
+        /* Style pour les avatars en cercle */
+        .avatar-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #FF6B00;
+}
+
+
+
+        
+        /* Style pour l'auteur du post */
+        .authors {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .username {
+            margin-right: 10px;
+        }
+        
+        /* Styles pour les interactions */
         .comment-like-section {
             display: flex;
             gap: 10px;
@@ -120,7 +144,8 @@
         <div class="body">
             <div class="authors">
                 <div class="username"><a>{{.Post.Username}}</a></div>
-                <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="">
+                <!-- Photo de profil circulaire pour l'auteur du post -->
+                <img class="avatar-circle" src="{{if .Post.ProfileImage}}/public/uploads/profiles/{{.Post.ProfileImage}}{{else}}https://cdn-icons-png.flaticon.com/512/149/149071.png{{end}}" alt="Avatar de {{.Post.Username}}">
             </div>
             <br>
             <div class="content">
@@ -209,7 +234,8 @@
             <div class="body">
                 <div class="authors">
                     <div class="username"><a>{{.Username}}</a></div>
-                    <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="">
+                    <!-- Photo de profil circulaire pour les commentateurs -->
+                    <img class="avatar-circle" src="{{if .ProfileImage}}/public/uploads/profiles/{{.ProfileImage}}{{else}}https://cdn-icons-png.flaticon.com/512/149/149071.png{{end}}" alt="Avatar de {{.Username}}">
                 </div>
                 <br>
                 <div class="content">

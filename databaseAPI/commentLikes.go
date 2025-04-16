@@ -48,6 +48,7 @@ func GetCommentLikes(database *sql.DB, commentId int) int {
 
 // GetCommentsByPostIDWithLikes récupère les commentaires d'un post avec les informations de likes
 // GetCommentsByPostIDWithLikes récupère les commentaires d'un post avec les informations de likes et dislikes
+// GetCommentsByPostIDWithLikes récupère les commentaires d'un post avec les informations de likes et dislikes
 func GetCommentsByPostIDWithLikes(database *sql.DB, postId string, username string) []Comment {
     query := `
         SELECT c.id, c.post_id, c.username, c.content, c.created_at,
@@ -72,12 +73,15 @@ func GetCommentsByPostIDWithLikes(database *sql.DB, postId string, username stri
         
         comment.UserLiked = userLiked > 0
         comment.UserDisliked = userDisliked > 0
+        
+        // Récupérer l'image de profil de l'auteur du commentaire
+        comment.ProfileImage = GetProfileImage(database, comment.Username)
+        
         comments = append(comments, comment)
     }
     
     return comments
 }
-
 
 // DislikeComment ajoute ou supprime un dislike sur un commentaire
 func DislikeComment(database *sql.DB, commentId int, username string) {
