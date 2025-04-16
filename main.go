@@ -71,12 +71,11 @@ func main() {
 	router.HandleFunc("/api/editpost", webAPI.EditPostHandler)
 	router.HandleFunc("/api/deletecomment", webAPI.DeleteCommentHandler)
 	router.HandleFunc("/api/commentlike", webAPI.CommentLikeApi)
-	router.HandleFunc("/filter-posts", webAPI.GetPostsByApi)
-	router.HandleFunc("/search", webAPI.AdvancedSearch)
 	router.HandleFunc("/auth/google/login", webAPI.GoogleLogin)
 	router.HandleFunc("/auth/google/callback", webAPI.GoogleCallback)
 	router.HandleFunc("/auth/github/login", webAPI.GitHubLogin)
 	router.HandleFunc("/auth/github/callback", webAPI.GitHubCallback)
+	router.HandleFunc("/search", webAPI.AdvancedSearch)
 
 	// Flags pour configurer le mode HTTP/HTTPS
 	var useHTTPS = flag.Bool("https", false, "Démarrer le serveur en mode HTTPS")
