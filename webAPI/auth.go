@@ -145,4 +145,3 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	t, _ := template.ParseGlob("public/HTML/*.html")
 	t.ExecuteTemplate(w, "signinForm.html", payload)
 }
-
