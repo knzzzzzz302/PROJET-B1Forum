@@ -10,6 +10,9 @@ import (
 type User struct {
     IsLoggedIn bool
     Username   string
+    MFAEnabled   bool
+    MFASecret    string
+
 }
 
 // securePassword est une fonction utilitaire pour hacher les mots de passe

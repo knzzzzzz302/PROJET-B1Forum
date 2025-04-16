@@ -6,11 +6,21 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+// AddMFAColumnIfNotExists ajoute la colonne mfa_secret à la table users si elle n'existe pas
+
 // CreateUsersTable creates the users table
 func CreateUsersTable(database *sql.DB) {
-	statement, _ := database.Prepare("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT, email TEXT, password TEXT, cookie TEXT, expires TEXT)")
-	statement.Exec()
+	statement, err := database.Prepare("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT, email TEXT, password TEXT, cookie TEXT, expires TEXT)")
+	if err != nil {
+		fmt.Printf("Erreur Prepare CreateUsersTable : %v\n", err)
+		return
+	}
+	_, err = statement.Exec()
+	if err != nil {
+		fmt.Printf("Erreur Exec CreateUsersTable : %v\n", err)
+	}
 }
+
 
 // AddProfileImageColumnIfNotExists ajoute la colonne profile_image à la table users si elle n'existe pas déjà
 func AddProfileImageColumnIfNotExists(database *sql.DB) {

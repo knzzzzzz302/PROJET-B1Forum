@@ -39,6 +39,7 @@ func main() {
 	databaseAPI.CreateCommentLikesTable(database)
 	databaseAPI.CreateCommentDislikesTable(database)
 	databaseAPI.CreatePostImagesTable(database)
+	databaseAPI.AddProfileImageColumnIfNotExists(database)
 	
 	// Créer le dossier pour stocker les images des profils
 	os.MkdirAll("public/uploads/profiles", os.ModePerm)
